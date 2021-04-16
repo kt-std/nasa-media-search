@@ -13,11 +13,12 @@ This application provides functionality to perform a search of media resources s
    * **Video** sort by: creation date, duration, file size, frame rate;
    * **Audio** sort by: creation date, duration, file size, bitrate;
    * **Image** sort by: creation date, resolution.
-4. Recent NASA photo/video background for the main page
-5. Provision of description for an item if any
+4. Provision of description for an item if any
+5. Display NASA "Picture Of the Day" as side content
 
 ### Additional features :star:
 0. Download button for images
 1. Selection of resolution for images to download
 2. Catalogue of Near Earth Objects (NEO)
 3. Sorting of NEO by: magnitude, approach date, velocity
+4. Recent NASA photo/video background for the main page
