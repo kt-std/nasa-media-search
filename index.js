@@ -1,7 +1,7 @@
 import { audioContent } from './audio';
 import { videoContent } from './video';
 import { imageContent } from './images';
-import { getRandomInexInRange } from './utils';
+import { getRandomInexInRange, getParametersFromNodeList } from './utils';
 
 /*
 let { collection: { metadata: { total_hits: totalHits }, items: imageItems} } = imageContent;
@@ -23,6 +23,8 @@ window.renderApp = function () {
 
 window.data = {
   requestMade: false,
+  searchValue: null,
+  mediaTypes: null,
 };
 
 window.renderApp();
@@ -32,13 +34,13 @@ function App() {
 }
 
 function SearchLayout(searchPosition) {
-  return `<form 
-    ${searchPosition === 'top' ? `class="search__form_top"` : `class="search__form_middle"`}>
-    ${
-      searchPosition === 'top'
-        ? `<a href="/" onclick="window.openHomePage(event); window.renderApp()">home</a>`
-        : ``
-    }
+  return `${
+    searchPosition === 'top'
+      ? `<a href="/" onclick="window.openHomePage(event); window.renderApp()">home</a>`
+      : ``
+  }
+    <form onsubmit="window.search(event); window.renderApp()" id="searchForm"
+    ${searchPosition === 'top' ? `class="search__form_top"` : `class="search__form_middle"`}>    
     ${SearchInput()}
     ${MediaTypeSwitcher()}
     ${SearchButton()}
@@ -72,7 +74,16 @@ function MediaTypeSwitcher() {
   return `
     ${['image', 'audio', 'video']
       .map(mediaType => {
-        return `<input type="checkbox" name="mediaType" id="${mediaType}" value="${mediaType}">
+        return `<input type="checkbox" 
+                       name="mediaType" 
+                       id="${mediaType}" 
+                       value="${mediaType}"
+                       ${
+                         window.data.mediaTypes !== null &&
+                         window.data.mediaTypes.indexOf(mediaType) !== -1
+                           ? `checked`
+                           : ``
+                       }>
            <label for="${mediaType}">${mediaType}</label>`;
       })
       .join('')}
@@ -80,23 +91,44 @@ function MediaTypeSwitcher() {
 }
 
 function SearchInput() {
-  return `<input type="text">`;
+  return `<input type="text" 
+                 id="searchInput" 
+                 value="${window.data.searchValue !== null ? window.data.searchValue : ``}">`;
 }
 
 window.search = function (e) {
   e.preventDefault();
-  requestData();
+  requestData(e);
 };
 
-function requestData() {
+function requestData(e) {
   window.data.requestMade = true;
+  const API_URL = 'https://images-api.nasa.gov/search',
+    searchInputValue = document.getElementById('searchInput').value,
+    mediaTypes = getMediaTypes(),
+    requestURL = `${API_URL}?q=${searchInputValue}${
+      mediaTypes.length ? `&media_type=${mediaTypes.join(',')}` : ''
+    }`;
+  window.data.mediaTypes = mediaTypes.length ? mediaTypes : null;
+  window.data.searchValue = searchInputValue;
+  // console.log(requestURL);
   return 'Data requested';
 }
 
-function SearchButton() {
-  return `<button onclick="window.search(event); window.renderApp()">search</button>`;
+function getMediaTypes() {
+  const mediaTypes = document.querySelectorAll('#searchForm>input:checked');
+  return getParametersFromNodeList('value', mediaTypes);
 }
+
+function SearchButton() {
+  return `<button>search</button>`;
+}
+
+function getDataByContentType(contentTypes) {}
 
 //todo add event enter ress on search
 /* check if checkboxes was checked to perform search via enter or onclick
+ * handle errors if request is unsuccessful
+ * media types neede to know which files to request
+ * checkbox mediaTypes window add to renderApp
  */
