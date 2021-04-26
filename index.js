@@ -98,10 +98,10 @@ function SearchInput() {
 
 window.search = function (e) {
   e.preventDefault();
-  requestData(e);
+  requestMedia(e);
 };
 
-function requestData(e) {
+function requestMedia(e) {
   window.data.requestMade = true;
   const API_URL = 'https://images-api.nasa.gov/search',
     searchInputValue = document.getElementById('searchInput').value,
@@ -111,7 +111,7 @@ function requestData(e) {
     }`;
   window.data.mediaTypes = mediaTypes.length ? mediaTypes : null;
   window.data.searchValue = searchInputValue;
-  // console.log(requestURL);
+  console.log(requestURL);
   return 'Data requested';
 }
 
