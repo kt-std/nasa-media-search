@@ -1,6 +1,12 @@
-import { audioContent } from './audio';
+import { audioContent } from './audio.js';
+import { audioCollection } from './audio_collection';
+import { audioMetadata } from './audio_metadata';
 import { videoContent } from './video';
-import { imageContent } from './images';
+import { videoCollection } from './video_collection';
+import { videoMetadata } from './video_metadata';
+import { imageContent } from './image';
+import { imageCollection } from './image_collection';
+import { imageMetadata } from './image_metadata';
 import { getRandomInexInRange, getParametersFromNodeList } from './utils';
 
 /*
@@ -15,16 +21,117 @@ imageItems.forEach((item, i) =>{
 }
 );*/
 
+/*
+For each media type filtering have to be performed by different categories:
+
+    Video filter by: keywords, location, photographer;
+    Audio filter by: keywords, center, bitrate;
+    Image filter by: keywords, center, creator, color space, image size, album.
+
+For each media type sorting have to be performed differently:
+
+    Video sort by: creation date, duration, file size, frame rate;
+    Audio sort by: creation date, duration, file size, bitrate;
+    Image sort by: creation date, resolution.
+*/
+
+/*collection{
+    items [
+      0: {
+        data [{
+          keywords[] / ""
+          date_created
+          center
+        }]
+        links [{
+          rel: "preview" 
+          href
+        }]
+        href: "link to collection"
+      }
+    ]
+  }
+  _collection: [
+    "metadata.json"
+  ]
+  _metadata: {
+  ::video
+    AVAIL:Location
+    AVAIL:Photographer
+    QuickTime:VideoFrameRate
+    QuickTime:Duration
+    File:FileSize
+  ::image
+    XMP:Creator [""]
+    EXIF:ColorSpace
+    File:FileSize
+    Composite:ImageSize
+    AVAIL:Album
+  ::audio
+    Composite:AvgBitrate
+    MPEG:AudioBitrate 
+    QuickTime:Duration
+    File:FileSize
+  }
+*/
+
+const neccessaryKeysForEachMedia = {
+  metadata: {
+    video: [
+      'AVAIL:Location',
+      'AVAIL:Photographer',
+      'QuickTime:VideoFrameRate',
+      'QuickTime:Duration',
+      'File:FileSize',
+    ],
+    image: [
+      'XMP:Creator',
+      'EXIF:ColorSpace',
+      'File:FileSize',
+      'Composite:ImageSize',
+      'AVAIL:Album',
+    ],
+    audio: ['Composite:AvgBitrate', 'MPEG:AudioBitrate', 'QuickTime:Duration', 'File:FileSize'],
+  },
+  content: {
+    data: {
+      default: ['keywords', 'date_created', 'center'],
+    },
+  },
+  collection: {
+    pattern: 'metadata.json',
+  },
+};
+
 window.renderApp = function () {
   document.getElementById('app-root').innerHTML = `
         ${App()}
     `;
 };
 
+const responseData = {
+  audio: {
+    content: audioContent,
+    collection: audioCollection,
+    metadata: audioMetadata,
+  },
+  image: {
+    content: imageContent,
+    collection: imageCollection,
+    metadata: imageMetadata,
+  },
+  video: {
+    content: videoContent,
+    collection: videoCollection,
+    metadata: videoMetadata,
+  },
+};
+
 window.data = {
   requestMade: false,
   searchValue: null,
   mediaTypes: null,
+  responseData: responseData,
 };
 
 window.renderApp();
@@ -39,7 +146,7 @@ function SearchLayout(searchPosition) {
       ? `<a href="/" onclick="window.openHomePage(event); window.renderApp()">home</a>`
       : ``
   }
-    <form onsubmit="window.search(event); window.renderApp()" id="searchForm"
+    <form onsubmit="window.searchByTerm(event); window.renderApp()" id="searchForm"
     ${searchPosition === 'top' ? `class="search__form_top"` : `class="search__form_middle"`}>    
     ${SearchInput()}
     ${MediaTypeSwitcher()}
@@ -96,23 +203,38 @@ function SearchInput() {
                  value="${window.data.searchValue !== null ? window.data.searchValue : ``}">`;
 }
 
-window.search = function (e) {
+window.searchByTerm = e => {
   e.preventDefault();
   requestMedia(e);
+  const flattenedData = getResponseData();
 };
 
-function requestMedia(e) {
+function getResponseData() {
+  return window.data.mediaTypes.map(mediaType => window.data.responseData[mediaType]);
+}
+
+function flattenResponseData(responseData) {}
+
+function requestMedia() {
   window.data.requestMade = true;
-  const API_URL = 'https://images-api.nasa.gov/search',
-    searchInputValue = document.getElementById('searchInput').value,
+  const searchInputValue = document.getElementById('searchInput').value,
     mediaTypes = getMediaTypes(),
-    requestURL = `${API_URL}?q=${searchInputValue}${
-      mediaTypes.length ? `&media_type=${mediaTypes.join(',')}` : ''
-    }`;
-  window.data.mediaTypes = mediaTypes.length ? mediaTypes : null;
+    requestURL = createRequestURL(searchInputValue, mediaTypes);
+  window.data.mediaTypes = setSelectedMediaTypes(mediaTypes);
   window.data.searchValue = searchInputValue;
-  console.log(requestURL);
+  // console.log(requestURL);
   return 'Data requested';
+}
+
+function createRequestURL(searchInputValue, mediaTypes) {
+  const API_URL = 'https://images-api.nasa.gov/search';
+  return `${API_URL}?q=${searchInputValue}${
+    mediaTypes.length ? `&media_type=${mediaTypes.join(',')}` : ''
+  }`;
+}
+
+function setSelectedMediaTypes(mediaTypes) {
+  return mediaTypes.length ? mediaTypes : null;
 }
 
 function getMediaTypes() {
