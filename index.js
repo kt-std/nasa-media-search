@@ -16,17 +16,6 @@ import {
   removeClass,
 } from './utils';
 import './style.css';
-/*
-let { collection: { metadata: { total_hits: totalHits }, items: imageItems} } = imageContent;
-console.log(imageItems);
-let innerHTML = '';
-
-imageItems.forEach((item, i) =>{
-  const randomItem = imageItems[getRandomInexInRange(imageItems.length)];
-  innerHTML += `<a href="#" class="image__preview" style="background-image: url(${randomItem.links[0].href})" data-title="${randomItem.data[0].nasa_id}: ${randomItem.data[0].title}" data-description=
-  "${randomItem.data[0].description}"></a>`;
-}
-);*/
 
 /*
 For each media type filtering have to be performed by different categories:
@@ -127,11 +116,15 @@ function getFlattenedContentFromRespond(respondBody) {
       date: getSeconds(date_created),
       title,
       center,
-      previewImage,
+      previewImage: removeSpacesFromLink(previewImage),
       href,
       mediaType: media_type,
     };
   });
+}
+
+function removeSpacesFromLink(link) {
+  return link !== null ? link.split(' ').join('%20') : null;
 }
 
 function calculateTotalHits(total_hits) {
