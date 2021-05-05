@@ -7,7 +7,7 @@
   --triangle--size: 5px;
   --triangle: var(--triangle--size) solid transparent;
   --triangle-color: var(--triangle--size) solid var(--light-color);
-  --main-background: #222;
+  --main-background: #e0e0e0;
   --extra-light: #f8f8f8;
   --form-padding: 5px;
 }
@@ -160,6 +160,42 @@ body.no_image__background {
 }
 .logo {
   width: 60px;
+}
+.filters__wrapper {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  padding: 15px 20px;
+  width: 250px;
+  margin: 20px;
+  max-height: 60vh;
+  overflow-y: scroll;
+  background-color: var(--extra-light);
+  border: var(--border);
+}
+.filter__label {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+  position: relative;
+}
+.filter__heading {
+  margin-bottom: 10px;
+}
+.text {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  width: 120px;
+  height: 1.2em;
+  white-space: nowrap;
+}
+.filter__counter {
+  font-size: small;
+}
+.response__layout {
+  display: flex;
+  box-sizing: border-box;
+  padding: 20px;
 }
 @media all and(max-width: 720px) {
   .search__input {

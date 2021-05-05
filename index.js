@@ -192,8 +192,8 @@ window.openHomePage = e => {
 
 function ResponseLayout(searchPosition) {
   return `
-  <div>
-   ${SearchLayout(searchPosition)}
+  ${SearchLayout(searchPosition)}
+  <div class="response__layout">
    <br>
    ${Filters()}
    <br>
@@ -202,7 +202,29 @@ function ResponseLayout(searchPosition) {
 }
 
 function Filters() {
-  return `filters`;
+  return `
+  <div class="filters__wrapper">
+  <h3 class="filter__heading">Key terms</h3>
+  ${getFiltersByKeyTerms()}
+  </div>`;
+}
+
+function getFiltersByKeyTerms() {
+  let filters = '';
+  for (let filter of Object.keys(window.data.filters)) {
+    filters += Filter(filter, window.data.filters[filter]);
+  }
+  return filters;
+}
+
+function Filter(filterName, filterCounter) {
+  return `
+    <label class="filter__label"> 
+      <span class="text">${filterName} </span>
+      <span class="filter__counter">(${filterCounter})</span>
+      <input value="${filterName}" name="${filterName}" type="checkbox">
+    </label>
+  `;
 }
 
 function ResponseContent() {
@@ -276,7 +298,7 @@ function separateFilteringTerms() {
 }
 
 function keywordIsASingleWord(keyword) {
-  return keyword.split(' ').length === 1;
+  return keyword.split(' ').length === 1 && !parseInt(keyword);
 }
 
 function splitContentByMediaTypes(responseData) {
