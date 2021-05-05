@@ -7,7 +7,7 @@ import { videoMetadata } from './video_metadata';
 import { imageContent } from './image';
 import { imageCollection } from './image_collection';
 import { imageMetadata } from './image_metadata';
-import { getRandomInexInRange, getParametersFromNodeList } from './utils';
+import { getRandomInexInRange, getParametersFromNodeList, getSeconds } from './utils';
 import './style.css';
 /*
 let { collection: { metadata: { total_hits: totalHits }, items: imageItems} } = imageContent;
@@ -74,7 +74,7 @@ For each media type sorting have to be performed differently:
     File:FileSize
   }
 */
-
+/*
 const necessaryKeysForEachMedia = {
   metadata: {
     video: [
@@ -93,15 +93,27 @@ const necessaryKeysForEachMedia = {
     ],
     audio: ['Composite:AvgBitrate', 'MPEG:AudioBitrate', 'QuickTime:Duration', 'File:FileSize'],
   },
-  content: {
-    data: {
-      default: ['keywords', 'date_created', 'center'],
-    },
+  content: { 
+  //collection.items[{data: [{}], href: collection} collection.metadata.total_hits]
+    data: [{'keywords', 'date_created', 'center'}],
+    href: '',
+    links: [{href, rel:'preview'}]
   },
   collection: {
     pattern: 'metadata.json',
   },
 };
+*/
+function getFlattenedContentFromRespond(respondBody) {
+  const {
+    collection: { items },
+  } = respondBody;
+  return items.map(item => {
+    const { data, href, links: [{ href: previewImage }] = [{ href: null }] } = item;
+    const { keywords, date_created, center, media_type } = data[0];
+    return { keywords, date: getSeconds(date_created), center, previewImage, href, media_type };
+  });
+}
 
 window.renderApp = function () {
   document.getElementById('app-root').innerHTML = `
@@ -172,13 +184,14 @@ window.openHomePage = e => {
 };
 
 function ResponseLayout(searchPosition) {
-  return `<div>
- ${SearchLayout(searchPosition)}
- <br>
- ${Filters()}
- <br>
- ${ResponseContent()}
-</div>`;
+  return `
+  <div>
+   ${SearchLayout(searchPosition)}
+   <br>
+   ${Filters()}
+   <br>
+   ${ResponseContent()}
+  </div>`;
 }
 
 function Filters() {
@@ -199,6 +212,7 @@ function MediaTypeSwitcher() {
         return `
           <div class="input__wrapper">
             <input type="checkbox" 
+                         class="mediaType"
                          name="mediaType" 
                          id="${mediaType}" 
                          value="${mediaType}"
@@ -231,10 +245,17 @@ window.searchByTerm = e => {
 };
 
 function getResponseData() {
-  return window.data.mediaTypes.map(mediaType => window.data.responseData[mediaType]);
+  return flat(
+    window.data.mediaTypes.map(mediaType => {
+      const respondData = window.data.responseData[mediaType];
+      return getFlattenedContentFromRespond(respondData.content);
+    }),
+  );
 }
 
-function flattenResponseData(responseData) {}
+function flat(array) {
+  return array.reduce((acc, current) => acc.concat(current), []);
+}
 
 function requestMedia() {
   window.data.requestMade = true;
@@ -268,7 +289,7 @@ function setSelectedMediaTypes(mediaTypes) {
 }
 
 function getMediaTypes() {
-  const mediaTypes = document.querySelectorAll('#searchForm input:checked');
+  const mediaTypes = document.querySelectorAll('input[name="mediaType"]:checked');
   return getParametersFromNodeList('value', mediaTypes);
 }
 
