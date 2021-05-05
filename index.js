@@ -7,7 +7,14 @@ import { videoMetadata } from './video_metadata';
 import { imageContent } from './image';
 import { imageCollection } from './image_collection';
 import { imageMetadata } from './image_metadata';
-import { getRandomInexInRange, getParametersFromNodeList, getSeconds } from './utils';
+import {
+  getRandomInexInRange,
+  getParametersFromNodeList,
+  getSeconds,
+  flat,
+  addClass,
+  removeClass,
+} from './utils';
 import './style.css';
 /*
 let { collection: { metadata: { total_hits: totalHits }, items: imageItems} } = imageContent;
@@ -199,6 +206,7 @@ function Filters() {
 }
 
 function ResponseContent() {
+  window.data.splittedData;
   return `ResponseContent`;
 }
 
@@ -241,8 +249,45 @@ function SearchInput() {
 window.searchByTerm = e => {
   e.preventDefault();
   requestMedia(e);
-  const flattenedData = getResponseData();
+  performReponseDataForRendering();
 };
+
+function performReponseDataForRendering() {
+  const flattenedData = getResponseData();
+  window.data.flattenedData = flattenedData;
+  window.data.splittedData = splitContentByMediaTypes(flattenedData);
+  window.data.filters = separateFilteringTerms();
+}
+
+function separateFilteringTerms() {
+  const filters = {};
+  window.data.flattenedData.forEach(dataItem => {
+    dataItem.keywords.forEach(keyword => {
+      if (keywordIsASingleWord(keyword)) {
+        if (!filters[keyword.toLowerCase()]) {
+          filters[keyword.toLowerCase()] = 1;
+        } else {
+          filters[keyword.toLowerCase()]++;
+        }
+      }
+    });
+  });
+  return filters;
+}
+
+function keywordIsASingleWord(keyword) {
+  return keyword.split(' ').length === 1;
+}
+
+function splitContentByMediaTypes(responseData) {
+  const splittedData = {};
+  window.data.mediaTypes.forEach(mediaType => {
+    splittedData[mediaType] = responseData.filter(
+      responseItem => responseItem.media_type === mediaType,
+    );
+  });
+  return splittedData;
+}
 
 function getResponseData() {
   return flat(
@@ -253,10 +298,6 @@ function getResponseData() {
   );
 }
 
-function flat(array) {
-  return array.reduce((acc, current) => acc.concat(current), []);
-}
-
 function requestMedia() {
   window.data.requestMade = true;
   addClass('no_image__background', document.body);
@@ -265,16 +306,7 @@ function requestMedia() {
     requestURL = createRequestURL(searchInputValue, mediaTypes);
   window.data.mediaTypes = setSelectedMediaTypes(mediaTypes);
   window.data.searchValue = searchInputValue;
-  // console.log(requestURL);
   return 'Data requested';
-}
-
-function addClass(backgroundClassName, element) {
-  element.classList.add(backgroundClassName);
-}
-
-function removeClass(backgroundClassName, element) {
-  element.classList.remove(backgroundClassName);
 }
 
 function createRequestURL(searchInputValue, mediaTypes) {
