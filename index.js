@@ -113,13 +113,29 @@ const necessaryKeysForEachMedia = {
 */
 function getFlattenedContentFromRespond(respondBody) {
   const {
-    collection: { items },
+    collection: {
+      items,
+      metadata: { total_hits },
+    },
   } = respondBody;
+  window.data.totalHits = calculateTotalHits(total_hits);
   return items.map(item => {
     const { data, href, links: [{ href: previewImage }] = [{ href: null }] } = item;
-    const { keywords, date_created, center, media_type } = data[0];
-    return { keywords, date: getSeconds(date_created), center, previewImage, href, media_type };
+    const { keywords, date_created, center, media_type, title } = data[0];
+    return {
+      keywords,
+      date: getSeconds(date_created),
+      title,
+      center,
+      previewImage,
+      href,
+      mediaType: media_type,
+    };
   });
+}
+
+function calculateTotalHits(total_hits) {
+  return window.data.totalHits ? (window.data.totalHits += total_hits) : total_hits;
 }
 
 window.renderApp = function () {
@@ -150,6 +166,7 @@ window.data = {
   requestMade: false,
   searchValue: null,
   mediaTypes: null,
+  totalHits: null,
   responseData: responseData,
 };
 
@@ -228,8 +245,30 @@ function Filter(filterName, filterCounter) {
 }
 
 function ResponseContent() {
-  window.data.splittedData;
-  return `ResponseContent`;
+  return `
+  <!--<h3 class="total_hits">Total hits ${window.data.totalHits} for ${
+    window.data.searchValue
+  }</h3>-->
+  
+  <div class="cards__wrapper">
+  ${getMediaContentCards()}
+  </div>
+  `;
+}
+
+function getMediaContentCards() {
+  return `${window.data.flattenedData.map(dataItem => Card(dataItem)).join('')}`;
+}
+
+function Card(dataItem) {
+  return `
+  <div class="card__item ${
+    dataItem.mediaType === 'audio' ? 'audio' : dataItem.mediaType === 'video' ? 'video' : 'image'
+  }" style="background-image: url(
+    ${
+      dataItem.previewImage !== null ? dataItem.previewImage : require('./assets/audio.svg')
+    })" data-title="${dataItem.title}"></div>
+  `;
 }
 
 function MediaTypeSwitcher() {
@@ -270,6 +309,7 @@ function SearchInput() {
 
 window.searchByTerm = e => {
   e.preventDefault();
+  window.data.totalHits = null;
   requestMedia(e);
   performReponseDataForRendering();
 };
@@ -286,10 +326,10 @@ function separateFilteringTerms() {
   window.data.flattenedData.forEach(dataItem => {
     dataItem.keywords.forEach(keyword => {
       if (keywordIsASingleWord(keyword)) {
-        if (!filters[keyword.toLowerCase()]) {
-          filters[keyword.toLowerCase()] = 1;
+        if (!filters[keyword.toUpperCase()]) {
+          filters[keyword.toUpperCase()] = 1;
         } else {
-          filters[keyword.toLowerCase()]++;
+          filters[keyword.toUpperCase()]++;
         }
       }
     });
