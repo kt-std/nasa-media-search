@@ -8,7 +8,7 @@ import { imageContent } from './image';
 import { imageCollection } from './image_collection';
 import { imageMetadata } from './image_metadata';
 import { getRandomInexInRange, getParametersFromNodeList } from './utils';
-
+import './style.css';
 /*
 let { collection: { metadata: { total_hits: totalHits }, items: imageItems} } = imageContent;
 console.log(imageItems);
@@ -75,7 +75,7 @@ For each media type sorting have to be performed differently:
   }
 */
 
-const neccessaryKeysForEachMedia = {
+const necessaryKeysForEachMedia = {
   metadata: {
     video: [
       'AVAIL:Location',
@@ -141,22 +141,34 @@ function App() {
 }
 
 function SearchLayout(searchPosition) {
-  return `${
-    searchPosition === 'top'
-      ? `<a href="/" onclick="window.openHomePage(event); window.renderApp()">home</a>`
-      : ``
-  }
-    <form onsubmit="window.searchByTerm(event); window.renderApp()" id="searchForm"
-    ${searchPosition === 'top' ? `class="search__form_top"` : `class="search__form_middle"`}>    
-    ${SearchInput()}
-    ${MediaTypeSwitcher()}
-    ${SearchButton()}
-  </form>`;
+  return `
+  <div class="form__wrapper ${
+    searchPosition === 'top' ? `search__form_top` : `search__form_middle`
+  }">
+  ${searchPosition === 'top' ? Logo() : ``}
+  <form onsubmit="window.searchByTerm(event); window.renderApp()" id="searchForm" class="form">    
+    <div class="search__box">    
+      ${MediaTypeSwitcher()}
+      ${SearchInput()}
+    </div>
+      ${SearchButton()}
+  </form>
+  </div>`;
+}
+
+function Logo() {
+  return `
+    <a href="/" onclick="window.openHomePage(event); window.renderApp()">
+      <img src="${require('/assets/logo.svg')}"  class="logo">
+    </a>`;
 }
 
 window.openHomePage = e => {
   e.preventDefault();
   window.data.requestMade = false;
+  window.data.searchValue = null;
+  window.data.mediaTypes = null;
+  removeClass('no_image__background', document.body);
 };
 
 function ResponseLayout(searchPosition) {
@@ -179,27 +191,36 @@ function ResponseContent() {
 
 function MediaTypeSwitcher() {
   return `
+  <label for="mediaSwitcherButton" class="media__switcher_label">All media types</label>
+  <input type="checkbox" class="media__switcher_button" id="mediaSwitcherButton">
+  <div class="media__switcher_wrapper">
     ${['image', 'audio', 'video']
       .map(mediaType => {
-        return `<input type="checkbox" 
-                       name="mediaType" 
-                       id="${mediaType}" 
-                       value="${mediaType}"
-                       ${
-                         window.data.mediaTypes !== null &&
-                         window.data.mediaTypes.indexOf(mediaType) !== -1
-                           ? `checked`
-                           : ``
-                       }>
-           <label for="${mediaType}">${mediaType}</label>`;
+        return `
+          <div class="input__wrapper">
+            <input type="checkbox" 
+                         name="mediaType" 
+                         id="${mediaType}" 
+                         value="${mediaType}"
+                         ${
+                           window.data.mediaTypes !== null &&
+                           window.data.mediaTypes.indexOf(mediaType) !== -1
+                             ? `checked`
+                             : ``
+                         }>
+            <label for="${mediaType}">${mediaType}</label>
+          </div>
+          `;
       })
       .join('')}
-  `;
+  </div>`;
 }
 
 function SearchInput() {
   return `<input type="text" 
                  id="searchInput" 
+                 placeholder='Search for ... (e.g. "Sun")'
+                 class="search__input"
                  value="${window.data.searchValue !== null ? window.data.searchValue : ``}">`;
 }
 
@@ -217,6 +238,7 @@ function flattenResponseData(responseData) {}
 
 function requestMedia() {
   window.data.requestMade = true;
+  addClass('no_image__background', document.body);
   const searchInputValue = document.getElementById('searchInput').value,
     mediaTypes = getMediaTypes(),
     requestURL = createRequestURL(searchInputValue, mediaTypes);
@@ -224,6 +246,14 @@ function requestMedia() {
   window.data.searchValue = searchInputValue;
   // console.log(requestURL);
   return 'Data requested';
+}
+
+function addClass(backgroundClassName, element) {
+  element.classList.add(backgroundClassName);
+}
+
+function removeClass(backgroundClassName, element) {
+  element.classList.remove(backgroundClassName);
 }
 
 function createRequestURL(searchInputValue, mediaTypes) {
@@ -238,12 +268,12 @@ function setSelectedMediaTypes(mediaTypes) {
 }
 
 function getMediaTypes() {
-  const mediaTypes = document.querySelectorAll('#searchForm>input:checked');
+  const mediaTypes = document.querySelectorAll('#searchForm input:checked');
   return getParametersFromNodeList('value', mediaTypes);
 }
 
 function SearchButton() {
-  return `<button>search</button>`;
+  return `<button class="search__button">search</button>`;
 }
 
 function getDataByContentType(contentTypes) {}
