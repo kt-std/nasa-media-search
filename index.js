@@ -1,12 +1,4 @@
-import { audioContent } from './audio.js';
-import { audioCollection } from './audio_collection';
-import { audioMetadata } from './audio_metadata';
-import { videoContent } from './video';
-import { videoCollection } from './video_collection';
-import { videoMetadata } from './video_metadata';
-import { imageContent } from './image';
-import { imageCollection } from './image_collection';
-import { imageMetadata } from './image_metadata';
+import { responseDataFiles } from './data.js';
 import {
   getRandomInexInRange,
   getParametersFromNodeList,
@@ -14,6 +6,9 @@ import {
   flat,
   addClass,
   removeClass,
+  getIndexByString,
+  keysForMetadataByMediaType,
+  removeSpacesFromLink,
 } from './utils';
 import './style.css';
 
@@ -70,36 +65,23 @@ For each media type sorting have to be performed differently:
     File:FileSize
   }
 */
-/*
-const necessaryKeysForEachMedia = {
-  metadata: {
-    video: [
-      'AVAIL:Location',
-      'AVAIL:Photographer',
-      'QuickTime:VideoFrameRate',
-      'QuickTime:Duration',
-      'File:FileSize',
-    ],
-    image: [
-      'XMP:Creator',
-      'EXIF:ColorSpace',
-      'File:FileSize',
-      'Composite:ImageSize',
-      'AVAIL:Album',
-    ],
-    audio: ['Composite:AvgBitrate', 'MPEG:AudioBitrate', 'QuickTime:Duration', 'File:FileSize'],
-  },
-  content: { 
-  //collection.items[{data: [{}], href: collection} collection.metadata.total_hits]
-    data: [{'keywords', 'date_created', 'center'}],
-    href: '',
-    links: [{href, rel:'preview'}]
-  },
-  collection: {
-    pattern: 'metadata.json',
-  },
+
+window.renderApp = function () {
+  document.getElementById('app-root').innerHTML = `
+        ${App()}
+    `;
 };
-*/
+
+window.data = {
+  requestMade: false,
+  searchValue: null,
+  mediaTypes: null,
+  totalHits: null,
+  responseData: responseDataFiles,
+};
+
+window.renderApp();
+
 function getFlattenedContentFromRespond(respondBody) {
   const {
     collection: {
@@ -123,47 +105,9 @@ function getFlattenedContentFromRespond(respondBody) {
   });
 }
 
-function removeSpacesFromLink(link) {
-  return link !== null ? link.split(' ').join('%20') : null;
-}
-
 function calculateTotalHits(total_hits) {
   return window.data.totalHits ? (window.data.totalHits += total_hits) : total_hits;
 }
-
-window.renderApp = function () {
-  document.getElementById('app-root').innerHTML = `
-        ${App()}
-    `;
-};
-
-const responseData = {
-  audio: {
-    content: audioContent,
-    collection: audioCollection,
-    metadata: audioMetadata,
-  },
-  image: {
-    content: imageContent,
-    collection: imageCollection,
-    metadata: imageMetadata,
-  },
-  video: {
-    content: videoContent,
-    collection: videoCollection,
-    metadata: videoMetadata,
-  },
-};
-
-window.data = {
-  requestMade: false,
-  searchValue: null,
-  mediaTypes: null,
-  totalHits: null,
-  responseData: responseData,
-};
-
-window.renderApp();
 
 function App() {
   return `${window.data.requestMade ? ResponseLayout('top') : SearchLayout('middle')}`;
@@ -312,6 +256,19 @@ function performReponseDataForRendering() {
   window.data.flattenedData = flattenedData;
   window.data.splittedData = splitContentByMediaTypes(flattenedData);
   window.data.filters = separateFilteringTerms();
+  getMetadataForDataItem();
+}
+
+function getFiltersDataFromMetadata() {
+  window.data.responseData;
+}
+
+function getMetadataForDataItem() {
+  window.data.flattenedData.forEach(dataItem => {
+    const collectionData = window.data.responseData[dataItem.mediaType].collection,
+      [metadataIndex] = getIndexByString('metadata.json', collectionData);
+    dataItem.metadata = metadataIndex;
+  });
 }
 
 function separateFilteringTerms() {
