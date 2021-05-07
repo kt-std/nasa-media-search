@@ -1,7 +1,3 @@
-export function getRandomInexInRange(maxValue) {
-  return Math.floor(Math.random() * maxValue);
-}
-
 export function getParametersFromNodeList(parameter, nodeList) {
   return Array.from(nodeList).map(item => item[parameter]);
 }
@@ -26,6 +22,59 @@ export function getIndexByString(str, data) {
   return data.filter(dataItem => dataItem.includes(str));
 }
 
+export function keywordIsASingleWord(keyword) {
+  return keyword.split(' ').length === 1 && !parseInt(keyword);
+}
+
+export function removeSpacesFromLink(link) {
+  return link !== null ? link.split(' ').join('%20') : null;
+}
+
+export function calculateTotalHits(totalHitsStored, total_hits) {
+  return totalHitsStored ? (totalHitsStored += total_hits) : total_hits;
+}
+
+export function getDurationValueFromString(duration) {
+  if (duration) {
+    const time = duration.match(/\d{1,}:\d{2}:\d{2}/g)[0];
+    return getSecondsFromDurationValue(time);
+  }
+  return null;
+}
+
+function getSecondsFromDurationValue(time) {
+  const separatedTimeValues = parseDuration(time),
+    [hours, minutes, seconds] = separatedTimeValues;
+  return hours * 3600 + minutes * 60 + seconds;
+}
+
+function parseDuration(time) {
+  return time.split(':').map(item => parseInt(item));
+}
+
+export function getConciseContentFromRespond(storage, respondBody) {
+  const {
+    collection: {
+      items,
+      metadata: { total_hits },
+    },
+  } = respondBody;
+  storage.data.totalHits = calculateTotalHits(storage.data.totalHits, total_hits);
+  return items.map(item => {
+    const { data, href, links: [{ href: previewImage }] = [{ href: null }] } = item;
+    const { keywords, date_created, center, media_type, title } = data[0];
+    return {
+      keywords,
+      date: getSeconds(date_created),
+      title,
+      center,
+      previewImage: removeSpacesFromLink(previewImage),
+      href,
+      mediaType: media_type,
+    };
+  });
+}
+
 export const keysForMetadataByMediaType = {
   video: {
     location: 'AVAIL:Location',
@@ -43,11 +92,7 @@ export const keysForMetadataByMediaType = {
   },
   audio: {
     bitrate: 'MPEG:AudioBitrate',
-    duration: 'QuickTime:Duration',
+    duration: 'Composite:Duration',
     size: 'File:FileSize',
   },
 };
-
-export function removeSpacesFromLink(link) {
-  return link !== null ? link.split(' ').join('%20') : null;
-}

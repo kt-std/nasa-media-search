@@ -1,6 +1,5 @@
 import { responseDataFiles } from './data.js';
 import {
-  getRandomInexInRange,
   getParametersFromNodeList,
   getSeconds,
   flat,
@@ -9,6 +8,10 @@ import {
   getIndexByString,
   keysForMetadataByMediaType,
   removeSpacesFromLink,
+  calculateTotalHits,
+  getConciseContentFromRespond,
+  keywordIsASingleWord,
+  getDurationValueFromString,
 } from './utils';
 import './style.css';
 
@@ -65,13 +68,6 @@ For each media type sorting have to be performed differently:
     File:FileSize
   }
 */
-
-window.renderApp = function () {
-  document.getElementById('app-root').innerHTML = `
-        ${App()}
-    `;
-};
-
 window.data = {
   requestMade: false,
   searchValue: null,
@@ -80,34 +76,21 @@ window.data = {
   responseData: responseDataFiles,
 };
 
+window.renderApp = function () {
+  document.getElementById('app-root').innerHTML = `
+        ${App()}
+    `;
+};
+
+window.openHomePage = e => {
+  e.preventDefault();
+  window.data.requestMade = false;
+  window.data.searchValue = null;
+  window.data.mediaTypes = null;
+  removeClass('no_image__background', document.body);
+};
+
 window.renderApp();
-
-function getFlattenedContentFromRespond(respondBody) {
-  const {
-    collection: {
-      items,
-      metadata: { total_hits },
-    },
-  } = respondBody;
-  window.data.totalHits = calculateTotalHits(total_hits);
-  return items.map(item => {
-    const { data, href, links: [{ href: previewImage }] = [{ href: null }] } = item;
-    const { keywords, date_created, center, media_type, title } = data[0];
-    return {
-      keywords,
-      date: getSeconds(date_created),
-      title,
-      center,
-      previewImage: removeSpacesFromLink(previewImage),
-      href,
-      mediaType: media_type,
-    };
-  });
-}
-
-function calculateTotalHits(total_hits) {
-  return window.data.totalHits ? (window.data.totalHits += total_hits) : total_hits;
-}
 
 function App() {
   return `${window.data.requestMade ? ResponseLayout('top') : SearchLayout('middle')}`;
@@ -136,14 +119,6 @@ function Logo() {
     </a>`;
 }
 
-window.openHomePage = e => {
-  e.preventDefault();
-  window.data.requestMade = false;
-  window.data.searchValue = null;
-  window.data.mediaTypes = null;
-  removeClass('no_image__background', document.body);
-};
-
 function ResponseLayout(searchPosition) {
   return `
   ${SearchLayout(searchPosition)}
@@ -163,14 +138,6 @@ function Filters() {
   </div>`;
 }
 
-function getFiltersByKeyTerms() {
-  let filters = '';
-  for (let filter of Object.keys(window.data.filters)) {
-    filters += Filter(filter, window.data.filters[filter]);
-  }
-  return filters;
-}
-
 function Filter(filterName, filterCounter) {
   return `
     <label class="filter__label"> 
@@ -185,15 +152,14 @@ function ResponseContent() {
   return `
   <!--<h3 class="total_hits">Total hits ${window.data.totalHits} for ${
     window.data.searchValue
-  }</h3>-->
-  
+  }</h3>-->  
   <div class="cards__wrapper">
-  ${getMediaContentCards()}
+  ${MediaContentCards()}
   </div>
   `;
 }
 
-function getMediaContentCards() {
+function MediaContentCards() {
   return `${window.data.flattenedData.map(dataItem => Card(dataItem)).join('')}`;
 }
 
@@ -244,23 +210,46 @@ function SearchInput() {
                  value="${window.data.searchValue !== null ? window.data.searchValue : ``}">`;
 }
 
+function SearchButton() {
+  return `<button class="search__button">search</button>`;
+}
+
 window.searchByTerm = e => {
   e.preventDefault();
   window.data.totalHits = null;
   requestMedia(e);
-  performReponseDataForRendering();
+  prepareReponseDataForRendering();
 };
 
-function performReponseDataForRendering() {
+function getFiltersByKeyTerms() {
+  let filters = '';
+  for (let filter of Object.keys(window.data.filters)) {
+    filters += Filter(filter, window.data.filters[filter]);
+  }
+  return filters;
+}
+
+function prepareReponseDataForRendering() {
   const flattenedData = getResponseData();
   window.data.flattenedData = flattenedData;
   window.data.splittedData = splitContentByMediaTypes(flattenedData);
   window.data.filters = separateFilteringTerms();
   getMetadataForDataItem();
+  getFiltersDataFromMetadata();
 }
 
 function getFiltersDataFromMetadata() {
-  window.data.responseData;
+  window.data.flattenedData.forEach(dataItem => {
+    window.data.mediaTypes.forEach(mediaType => {
+      const mediaMetadata = window.data.responseData[mediaType].metadata,
+        mediaKeysNeeded = keysForMetadataByMediaType[mediaType];
+      for (let key of Object.keys(mediaKeysNeeded)) {
+        key === 'duration'
+          ? (dataItem[key] = getDurationValueFromString(mediaMetadata[mediaKeysNeeded[key]]))
+          : (dataItem[key] = mediaMetadata[mediaKeysNeeded[key]]);
+      }
+    });
+  });
 }
 
 function getMetadataForDataItem() {
@@ -287,10 +276,6 @@ function separateFilteringTerms() {
   return filters;
 }
 
-function keywordIsASingleWord(keyword) {
-  return keyword.split(' ').length === 1 && !parseInt(keyword);
-}
-
 function splitContentByMediaTypes(responseData) {
   const splittedData = {};
   window.data.mediaTypes.forEach(mediaType => {
@@ -305,20 +290,24 @@ function getResponseData() {
   return flat(
     window.data.mediaTypes.map(mediaType => {
       const respondData = window.data.responseData[mediaType];
-      return getFlattenedContentFromRespond(respondData.content);
+      return getConciseContentFromRespond(window, respondData.content);
     }),
   );
 }
 
 function requestMedia() {
-  window.data.requestMade = true;
-  addClass('no_image__background', document.body);
+  changeStateToRequestMade();
   const searchInputValue = document.getElementById('searchInput').value,
     mediaTypes = getMediaTypes(),
     requestURL = createRequestURL(searchInputValue, mediaTypes);
   window.data.mediaTypes = setSelectedMediaTypes(mediaTypes);
   window.data.searchValue = searchInputValue;
   return 'Data requested';
+}
+
+function changeStateToRequestMade() {
+  window.data.requestMade = true;
+  addClass('no_image__background', document.body);
 }
 
 function createRequestURL(searchInputValue, mediaTypes) {
@@ -336,12 +325,6 @@ function getMediaTypes() {
   const mediaTypes = document.querySelectorAll('input[name="mediaType"]:checked');
   return getParametersFromNodeList('value', mediaTypes);
 }
-
-function SearchButton() {
-  return `<button class="search__button">search</button>`;
-}
-
-function getDataByContentType(contentTypes) {}
 
 //todo add event enter ress on search
 /* check if checkboxes was checked to perform search via enter or onclick
