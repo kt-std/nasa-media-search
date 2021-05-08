@@ -8,7 +8,7 @@ import { imageContent } from './image';
 import { imageCollection } from './image_collection';
 import { imageMetadata } from './image_metadata';
 
-export const responseDataFiles = {
+export const RESPONSE_DATA_FILES = {
   audio: {
     content: audioContent,
     collection: audioCollection,
@@ -24,4 +24,10 @@ export const responseDataFiles = {
     collection: videoCollection,
     metadata: videoMetadata,
   },
+};
+
+export const FILTERS_BY_MEDIA_TYPE = {
+  video: ['location', 'photographer'],
+  audio: ['center', 'bitrate'],
+  image: ['center', 'creator', 'colorSpace', 'resolution', 'album'],
 };

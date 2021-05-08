@@ -62,7 +62,7 @@ export function getConciseContentFromRespond(storage, respondBody) {
   storage.data.totalHits = calculateTotalHits(storage.data.totalHits, total_hits);
   return items.map(item => {
     const { data, href, links: [{ href: previewImage }] = [{ href: null }] } = item;
-    const { keywords, date_created, center, media_type, title } = data[0];
+    const { keywords, date_created, center, media_type, title, secondary_creator = null } = data[0];
     return {
       keywords,
       date: getSeconds(date_created),
@@ -71,11 +71,16 @@ export function getConciseContentFromRespond(storage, respondBody) {
       previewImage: removeSpacesFromLink(previewImage),
       href,
       mediaType: media_type,
+      creator: getCreatorsList(secondary_creator),
     };
   });
 }
 
-export const keysForMetadataByMediaType = {
+function getCreatorsList(creator) {
+  return creator !== null ? creator.split('/') : creator;
+}
+
+export const MEDATADA_KEYS_BY_MEDIA_TYPE = {
   video: {
     location: 'AVAIL:Location',
     photographer: 'AVAIL:Photographer',
@@ -84,7 +89,6 @@ export const keysForMetadataByMediaType = {
     size: 'File:FileSize',
   },
   image: {
-    creator: 'XMP:Creator',
     colorSpace: 'EXIF:ColorSpace',
     size: 'File:FileSize',
     resolution: 'Composite:ImageSize',

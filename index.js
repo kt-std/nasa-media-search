@@ -1,4 +1,4 @@
-import { responseDataFiles } from './data.js';
+import { RESPONSE_DATA_FILES } from './data.js';
 import {
   getParametersFromNodeList,
   getSeconds,
@@ -6,7 +6,7 @@ import {
   addClass,
   removeClass,
   getIndexByString,
-  keysForMetadataByMediaType,
+  MEDATADA_KEYS_BY_MEDIA_TYPE,
   removeSpacesFromLink,
   calculateTotalHits,
   getConciseContentFromRespond,
@@ -18,15 +18,15 @@ import './style.css';
 /*
 For each media type filtering have to be performed by different categories:
 
-    Video filter by: keywords, location, photographer;
+    Video filter by: keywords, location, photographer; 
     Audio filter by: keywords, center, bitrate;
     Image filter by: keywords, center, creator, color space, image size, album.
 
 For each media type sorting have to be performed differently:
 
-    Video sort by: creation date, duration, file size, frame rate;
+    Video sort by: creation date, duration, file size, frame rate; 
     Audio sort by: creation date, duration, file size, bitrate;
-    Image sort by: creation date, resolution.
+    Image sort by: creation date, file size, resolution.
 */
 
 /*collection{
@@ -72,8 +72,9 @@ window.data = {
   requestMade: false,
   searchValue: null,
   mediaTypes: null,
+  filters: {},
   totalHits: null,
-  responseData: responseDataFiles,
+  responseData: RESPONSE_DATA_FILES,
 };
 
 window.renderApp = function () {
@@ -150,9 +151,7 @@ function Filter(filterName, filterCounter) {
 
 function ResponseContent() {
   return `
-  <!--<h3 class="total_hits">Total hits ${window.data.totalHits} for ${
-    window.data.searchValue
-  }</h3>-->  
+  <h3 class="total_hits">Total hits ${window.data.totalHits} for ${window.data.searchValue}</h3>  
   <div class="cards__wrapper">
   ${MediaContentCards()}
   </div>
@@ -223,8 +222,8 @@ window.searchByTerm = e => {
 
 function getFiltersByKeyTerms() {
   let filters = '';
-  for (let filter of Object.keys(window.data.filters)) {
-    filters += Filter(filter, window.data.filters[filter]);
+  for (let filter of Object.keys(window.data.filters.keyTerms)) {
+    filters += Filter(filter, window.data.filters.keyTerms[filter]);
   }
   return filters;
 }
@@ -233,23 +232,67 @@ function prepareReponseDataForRendering() {
   const flattenedData = getResponseData();
   window.data.flattenedData = flattenedData;
   window.data.splittedData = splitContentByMediaTypes(flattenedData);
-  window.data.filters = separateFilteringTerms();
+  window.data.filters.keyTerms = getFiltersFrom2DArray(
+    window.data.flattenedData,
+    'keywords',
+    true,
+    keywordIsASingleWord,
+  );
   getMetadataForDataItem();
   getFiltersDataFromMetadata();
+  //window.data.filters.creator = getFiltersFrom2DArray(window.data.flattenedData, 'creator', false, );
 }
 
 function getFiltersDataFromMetadata() {
   window.data.flattenedData.forEach(dataItem => {
     window.data.mediaTypes.forEach(mediaType => {
       const mediaMetadata = window.data.responseData[mediaType].metadata,
-        mediaKeysNeeded = keysForMetadataByMediaType[mediaType];
+        mediaKeysNeeded = MEDATADA_KEYS_BY_MEDIA_TYPE[mediaType];
       for (let key of Object.keys(mediaKeysNeeded)) {
-        key === 'duration'
-          ? (dataItem[key] = getDurationValueFromString(mediaMetadata[mediaKeysNeeded[key]]))
-          : (dataItem[key] = mediaMetadata[mediaKeysNeeded[key]]);
+        transformKeyValueToNumber(key, dataItem, mediaMetadata[mediaKeysNeeded[key]]);
       }
     });
   });
+}
+
+function transformKeyValueToNumber(key, dataItem, metadataValue) {
+  switch (key) {
+    case 'duration':
+      dataItem[key] = getDurationValueFromString(metadataValue);
+      break;
+    case 'size':
+      dataItem[key] = getSizeInKBFromString(metadataValue);
+      break;
+    case 'bitrate':
+      dataItem[key] = getNumberFromString(metadataValue);
+      break;
+    case 'resolution':
+      dataItem[key] = getResolutionFromString(metadataValue);
+      break;
+    default:
+      dataItem[key] = metadataValue;
+  }
+}
+
+function getSizeInKBFromString(value) {
+  const [number, unit] = value.split(' ');
+  switch (unit.toUpperCase()) {
+    case 'KB':
+      return { number, unit, value: getNumberFromString(number) };
+    case 'MB':
+      return { number, unit, value: getNumberFromString(number) * 1024 };
+    case 'GB':
+      return { number, unit, value: getNumberFromString(number) * 1024 * 1024 };
+  }
+}
+
+function getResolutionFromString(value) {
+  const [height, width] = value.toLowerCase().split('x');
+  return { height: getNumberFromString(height), width: getNumberFromString(width) };
+}
+
+function getNumberFromString(value) {
+  return value ? parseInt(value) : null;
 }
 
 function getMetadataForDataItem() {
@@ -260,20 +303,45 @@ function getMetadataForDataItem() {
   });
 }
 
-function separateFilteringTerms() {
-  const filters = {};
-  window.data.flattenedData.forEach(dataItem => {
-    dataItem.keywords.forEach(keyword => {
-      if (keywordIsASingleWord(keyword)) {
-        if (!filters[keyword.toUpperCase()]) {
-          filters[keyword.toUpperCase()] = 1;
-        } else {
-          filters[keyword.toUpperCase()]++;
+function getFiltersFrom2DArray(data, key, condition = false, callback) {
+  const filtersContainer = {};
+  data.forEach(dataItem => {
+    dataItem[key].forEach(keyword => {
+      if (condition) {
+        if (callback(keyword)) {
+          updateFilterValue(filtersContainer, keyword);
         }
+      } else {
+        updateFilterValue(filtersContainer, keyword);
       }
     });
   });
-  return filters;
+  return filtersContainer;
+}
+/*
+function getFilteringKeyTerms() {
+  window.data.flattenedData.forEach(dataItem => {
+    dataItem.keywords.forEach(keyword => {
+      if (keywordIsASingleWord(keyword)) {
+        updateFilterValue(filtersContainer, keyword);
+      }
+    });
+  });
+  return filtersContainer;
+}
+*/
+function getFiltersByKeyName(data, key, filtersContainer) {
+  data.forEach(dataItem => {
+    updateFilterValue(filtersContainer[key], dataItem[key]);
+  });
+}
+
+function updateFilterValue(filtersContainer, keyword) {
+  if (!filtersContainer[keyword.toUpperCase()]) {
+    filtersContainer[keyword.toUpperCase()] = 1;
+  } else {
+    filtersContainer[keyword.toUpperCase()]++;
+  }
 }
 
 function splitContentByMediaTypes(responseData) {
