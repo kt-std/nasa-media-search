@@ -64,7 +64,7 @@ export function getConciseContentFromRespond(storage, respondBody) {
     const { data, href, links: [{ href: previewImage }] = [{ href: null }] } = item;
     const { keywords, date_created, center, media_type, title, secondary_creator = null } = data[0];
     return {
-      keywords,
+      keywords: getOnlySingleWordKeyword(keywords),
       date: getSeconds(date_created),
       title,
       center,
@@ -76,14 +76,25 @@ export function getConciseContentFromRespond(storage, respondBody) {
   });
 }
 
+function getOnlySingleWordKeyword(keywords) {
+  return keywords.filter(keyword => keywordIsASingleWord(keyword));
+}
+
 function getCreatorsList(creator) {
-  return creator !== null ? creator.split('/') : creator;
+  return creator !== null ? splitStringWithDifferentSeparator(creator) : ['unknown'];
+}
+
+function splitStringWithDifferentSeparator(stringToSplit) {
+  if (stringToSplit.indexOf('/') === -1) {
+    return stringToSplit.split(', ');
+  } else {
+    return stringToSplit.split('/');
+  }
 }
 
 export const MEDATADA_KEYS_BY_MEDIA_TYPE = {
   video: {
     location: 'AVAIL:Location',
-    photographer: 'AVAIL:Photographer',
     framerate: 'QuickTime:VideoFrameRate',
     duration: 'QuickTime:Duration',
     size: 'File:FileSize',
