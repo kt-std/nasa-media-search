@@ -32,3 +32,14 @@ export const FILTERS_BY_MEDIA_TYPE = {
   audio: ['keywords', 'center', 'bitrateValue'],
   image: ['keywords', 'creator', 'center', 'colorSpace', 'resolutionValue', 'album'],
 };
+
+export const FILTERS_TEXT = {
+  keywords: 'key terms',
+  location: 'location',
+  center: 'center',
+  creator: 'media creator',
+  bitrateValue: 'audio bitrate',
+  colorSpace: 'image color space',
+  resolutionValue: 'image resolution',
+  album: 'image album',
+};

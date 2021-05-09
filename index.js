@@ -1,4 +1,4 @@
-import { FILTERS_BY_MEDIA_TYPE, RESPONSE_DATA_FILES } from './data.js';
+import { FILTERS_TEXT, FILTERS_BY_MEDIA_TYPE, RESPONSE_DATA_FILES } from './data.js';
 import {
   getParametersFromNodeList,
   getSeconds,
@@ -28,45 +28,6 @@ For each media type sorting have to be performed differently:
     Image sort by: creation date, file size, resolution.
 */
 
-/*collection{
-    items [
-      0: {
-        data [{
-          keywords[] / ""
-          date_created
-          center
-        }]
-        links [{
-          rel: "preview" 
-          href
-        }]
-        href: "link to collection"
-      }
-    ]
-  }
-  _collection: [
-    "metadata.json"
-  ]
-  _metadata: {
-  ::video
-    AVAIL:Location
-    AVAIL:Photographer
-    QuickTime:VideoFrameRate
-    QuickTime:Duration
-    File:FileSize
-  ::image
-    XMP:Creator [""]
-    EXIF:ColorSpace
-    File:FileSize
-    Composite:ImageSize
-    AVAIL:Album
-  ::audio
-    Composite:AvgBitrate
-    MPEG:AudioBitrate 
-    QuickTime:Duration
-    File:FileSize
-  }
-*/
 window.data = {
   requestMade: false,
   searchValue: null,
@@ -133,8 +94,7 @@ function ResponseLayout(searchPosition) {
 function Filters() {
   return `
   <div class="filters__wrapper">
-  <h3 class="filter__heading">Key terms</h3>
-  ${getFiltersByKeyTerms()}
+    ${getFiltersByCategories()}
   </div>`;
 }
 
@@ -220,11 +180,16 @@ window.searchByTerm = e => {
   prepareReponseDataForRendering();
 };
 
-function getFiltersByKeyTerms() {
+function getFiltersByCategories() {
   let filters = '';
-  for (let filter of Object.keys(window.data.filters.keywords)) {
-    filters += Filter(filter, window.data.filters.keywords[filter]);
-  }
+  Object.keys(window.data.filters).forEach(filterName => {
+    filters += `<h3 class="filter__heading">${FILTERS_TEXT[filterName]}</h3>
+      <div class="filter__item_wrapper">`;
+    Object.keys(window.data.filters[filterName]).forEach(filterContent => {
+      filters += Filter(filterContent, window.data.filters[filterName][filterContent]);
+    });
+    filters += `</div>`;
+  });
   return filters;
 }
 
@@ -280,6 +245,9 @@ function getFiltersDataFromMetadata() {
 
 function transformKeyValueToNumber(key, dataItem, metadataValue) {
   switch (key) {
+    case 'album':
+      dataItem[key] = getImageAlbum(metadataValue);
+      break;
     case 'duration':
       dataItem[key] = getDurationValueFromString(metadataValue);
       break;
@@ -297,6 +265,10 @@ function transformKeyValueToNumber(key, dataItem, metadataValue) {
     default:
       dataItem[key] = metadataValue;
   }
+}
+
+function getImageAlbum(value) {
+  return !value ? 'unknown' : value;
 }
 
 function getSizeInKBFromString(value) {
