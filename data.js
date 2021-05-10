@@ -29,8 +29,8 @@ export const RESPONSE_DATA_FILES = {
 //creator === photographer
 export const FILTERS_BY_MEDIA_TYPE = {
   video: ['keywords', 'location', 'creator'],
-  audio: ['keywords', 'center', 'bitrateValue'],
-  image: ['keywords', 'creator', 'center', 'colorSpace', 'resolutionValue', 'album'],
+  audio: ['keywords', 'center', 'bitrate'],
+  image: ['keywords', 'creator', 'center', 'colorSpace', 'resolutionOrigin', 'album'],
 };
 
 export const FILTERS_TEXT = {
@@ -38,8 +38,22 @@ export const FILTERS_TEXT = {
   location: 'location',
   center: 'center',
   creator: 'media creator',
-  bitrateValue: 'audio bitrate',
+  bitrate: 'audio bitrate',
   colorSpace: 'image color space',
-  resolutionValue: 'image resolution',
+  resolutionOrigin: 'image resolution',
   album: 'image album',
+};
+
+export const MEDIA_TYPE_SORTING_OPTIONS = {
+  video: ['duration', 'date', 'sizeValue', 'framerate'],
+  audio: ['duration', 'date', 'sizeValue', 'bitrateValue'],
+  image: ['date', 'sizeValue', 'resolutionValue'],
+};
+export const SORTING_OPTIONS_TEXT = {
+  duration: 'duration',
+  date: 'creation date',
+  sizeValue: 'file size',
+  framerate: 'frame rate',
+  bitrateValue: 'bitrate',
+  resolutionValue: 'resolution',
 };

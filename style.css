@@ -257,10 +257,14 @@ body.no_image__background {
 
 .total_hits {
   color: #888;
-  width: 100%;
-  margin-bottom: 20px;
 }
-
+.sort_hits_wrapper {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  align-items: center;
+}
 .card__item:before::-webkit-scrollbar,
 span.text::-webkit-scrollbar {
   display: none;
@@ -288,6 +292,10 @@ span.text::-webkit-scrollbar {
 .video:hover:after {
   filter: drop-shadow(0 0 5px rgba(100, 100, 100, 0.9));
   border-left-color: #aaa;
+}
+
+.sorting__option {
+  text-transform: uppercase;
 }
 
 .filter__counter {

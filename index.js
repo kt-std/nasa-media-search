@@ -1,4 +1,10 @@
-import { FILTERS_TEXT, FILTERS_BY_MEDIA_TYPE, RESPONSE_DATA_FILES } from './data.js';
+import {
+  MEDIA_TYPE_SORTING_OPTIONS,
+  SORTING_OPTIONS_TEXT,
+  FILTERS_TEXT,
+  FILTERS_BY_MEDIA_TYPE,
+  RESPONSE_DATA_FILES,
+} from './data.js';
 import {
   getParametersFromNodeList,
   getSeconds,
@@ -94,7 +100,7 @@ function ResponseLayout(searchPosition) {
 function Filters() {
   return `
   <div class="filters__wrapper">
-    ${getFiltersByCategories()}
+    ${getFiltersByCategories(window.data.filters)}
   </div>`;
 }
 
@@ -107,11 +113,48 @@ function Filter(filterName, filterCounter) {
     </label>
   `;
 }
+function Sort() {
+  return `
+  <label>Sort by:
+    <select name="mediaSort" id="mediaSort">
+      ${getSortOptions()}
+    </select>
+  </label>`;
+}
+
+function getSortOptions() {
+  return Object.keys(SORTING_OPTIONS_TEXT)
+    .map(option => {
+      if (isOptionNeeded(option)) {
+        return ['ascending', 'descending']
+          .map(sortType => {
+            return `<option value="${option}_${sortType}" class="sorting__option">
+                   ${SORTING_OPTIONS_TEXT[option]} ${
+              sortType === 'ascending' ? '&#8593;' : '&#8595;'
+            }
+                </option>`;
+          })
+          .join('');
+      }
+    })
+    .join('');
+}
+
+function isOptionNeeded(option) {
+  return window.data.mediaTypes.some(mediaType => {
+    return MEDIA_TYPE_SORTING_OPTIONS[mediaType].indexOf(option) !== -1;
+  });
+}
 
 function ResponseContent() {
   return `
   <div class="cards__wrapper">
-    <h3 class="total_hits">Total hits ${window.data.totalHits} for ${window.data.searchValue}</h3>  
+    <div class="sort_hits_wrapper">
+      <h3 class="total_hits">Total hits ${window.data.totalHits} for ${
+    window.data.searchValue
+  }</h3>  
+      ${Sort()}
+      </div>
     ${MediaContentCards()}
   </div>
   `;
@@ -180,31 +223,40 @@ window.searchByTerm = e => {
   prepareReponseDataForRendering();
 };
 
-function getFiltersByCategories() {
-  let filters = '';
-  Object.keys(window.data.filters).forEach(filterName => {
-    filters += `<h3 class="filter__heading">${FILTERS_TEXT[filterName]}</h3>
-      <div class="filter__item_wrapper">`;
-    Object.keys(window.data.filters[filterName]).forEach(filterContent => {
-      filters += Filter(filterContent, window.data.filters[filterName][filterContent]);
-    });
-    filters += `</div>`;
-  });
-  return filters;
+function getFiltersByCategories(filtersContainer) {
+  return Object.keys(filtersContainer)
+    .map(filterName => {
+      return `<h3 class="filter__heading">${FILTERS_TEXT[filterName]}</h3>
+      <div class="filter__item_wrapper">
+        ${Object.keys(filtersContainer[filterName])
+          .map(filterContent => {
+            return Filter(filterContent, filtersContainer[filterName][filterContent]);
+          })
+          .join('')}
+      </div>`;
+    })
+    .join('');
 }
 
 function prepareReponseDataForRendering() {
   const flattenedData = getResponseData();
   window.data.flattenedData = flattenedData;
-  window.data.splittedData = splitContentByMediaTypes(flattenedData);
-  getMetadataForDataItem();
-  getFiltersDataFromMetadata();
-  getFiltersFromLists(window.data.flattenedData, window.data.filters);
+  getMetadataForDataItem(window.data.flattenedData, window.data.responseData);
+  getFiltersDataFromMetadata(
+    window.data.flattenedData,
+    window.data.mediaTypes,
+    window.data.responseData,
+  );
+  getFiltersFromLists(window.data.flattenedData, window.data.mediaTypes, window.data.filters);
+  window.data.splittedData = splitContentByMediaTypes(
+    window.data.mediaTypes,
+    window.data.flattenedData,
+  );
 }
 
-function getFiltersFromLists(data, filtersContainer) {
+function getFiltersFromLists(data, mediaTypes, filtersContainer) {
   data.forEach(dataItem => {
-    window.data.mediaTypes.forEach(mediaType => {
+    mediaTypes.forEach(mediaType => {
       FILTERS_BY_MEDIA_TYPE[mediaType].forEach(key => {
         if (!filtersContainer[key]) {
           filtersContainer[key] = {};
@@ -229,10 +281,10 @@ function isArray(data) {
   return Array.isArray(data);
 }
 
-function getFiltersDataFromMetadata() {
-  window.data.flattenedData.forEach(dataItem => {
-    window.data.mediaTypes.forEach(mediaType => {
-      const mediaMetadata = window.data.responseData[mediaType].metadata,
+function getFiltersDataFromMetadata(data, mediaTypes, responseData) {
+  data.forEach(dataItem => {
+    mediaTypes.forEach(mediaType => {
+      const mediaMetadata = responseData[mediaType].metadata,
         mediaKeysNeeded = MEDATADA_KEYS_BY_MEDIA_TYPE[mediaType];
       for (let key of Object.keys(mediaKeysNeeded)) {
         if (dataItem.mediaType === mediaType) {
@@ -253,14 +305,16 @@ function transformKeyValueToNumber(key, dataItem, metadataValue) {
       break;
     case 'size':
       dataItem[key] = getSizeInKBFromString(metadataValue);
+      dataItem[`${key}Value`] = dataItem[key].value;
       break;
     case 'bitrate':
-      dataItem[key] = getNumberFromString(metadataValue);
-      dataItem[`${key}Value`] = metadataValue;
+      dataItem[`${key}Value`] = getNumberFromString(metadataValue);
+      dataItem[key] = metadataValue;
       break;
     case 'resolution':
       dataItem[key] = getResolutionFromString(metadataValue);
-      dataItem[`${key}Value`] = metadataValue;
+      dataItem[`${key}Origin`] = metadataValue;
+      dataItem[`${key}Value`] = dataItem[key].height * dataItem[key].width;
       break;
     default:
       dataItem[key] = metadataValue;
@@ -292,9 +346,9 @@ function getNumberFromString(value) {
   return value ? parseInt(value) : null;
 }
 
-function getMetadataForDataItem() {
-  window.data.flattenedData.forEach(dataItem => {
-    const collectionData = window.data.responseData[dataItem.mediaType].collection,
+function getMetadataForDataItem(data, responseData) {
+  data.forEach(dataItem => {
+    const collectionData = responseData[dataItem.mediaType].collection,
       [metadataIndex] = getIndexByString('metadata.json', collectionData);
     dataItem.metadata = metadataIndex;
   });
@@ -316,12 +370,10 @@ function updateFilterValue(filtersContainer, keyword) {
   }
 }
 
-function splitContentByMediaTypes(responseData) {
+function splitContentByMediaTypes(mediaTypes, data) {
   const splittedData = {};
-  window.data.mediaTypes.forEach(mediaType => {
-    splittedData[mediaType] = responseData.filter(
-      responseItem => responseItem.media_type === mediaType,
-    );
+  mediaTypes.forEach(mediaType => {
+    splittedData[mediaType] = data.filter(dataItem => dataItem.mediaType === mediaType);
   });
   return splittedData;
 }
