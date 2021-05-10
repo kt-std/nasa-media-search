@@ -236,10 +236,10 @@ body.no_image__background {
 
 .filter__label {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 5px;
+  align-items: center;
+  margin: 0 10px 10px 0;
   position: relative;
+  height: 25px;
 }
 .filter__heading {
   margin-bottom: 20px;
@@ -248,10 +248,12 @@ body.no_image__background {
 .text {
   text-overflow: ellipsis;
   overflow: scroll;
-  width: 120px;
+  margin: 0 5px 0 10px;
+  text-align: left;
+  width: auto;
+  max-width: 120px;
   -ms-overflow-style: none;
   scrollbar-width: none;
-  height: 1.8em;
   white-space: nowrap;
 }
 
@@ -266,7 +268,7 @@ body.no_image__background {
   align-items: center;
 }
 .card__item:before::-webkit-scrollbar,
-span.text::-webkit-scrollbar {
+.text::-webkit-scrollbar {
   display: none;
 }
 
@@ -299,7 +301,8 @@ span.text::-webkit-scrollbar {
 }
 
 .filter__counter {
-  font-size: small;
+  font-size: 12px;
+  color: #aaa;
 }
 .response__layout {
   display: flex;
@@ -307,6 +310,35 @@ span.text::-webkit-scrollbar {
   padding: 40px;
   justify-content: center;
 }
+
+.selected__filters {
+  width: 100%;
+  display: flex;
+}
+
+.filter__selected_container {
+  margin: 0 10px 20px 0;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  font-size: small;
+}
+.filter__selected {
+  padding: 5px 15px;
+  background-color: var(--extra-light);
+  border-radius: 20px 0 0 20px;
+}
+.remove__filter {
+  border: none;
+  background-color: #f0f0f0;
+  border-left: 1px solid #ddd;
+  padding: 5px 10px;
+  cursor: pointer;
+
+  border-radius: 0 20px 20px 0;
+  font-size: small;
+}
+
 @media all and(max-width: 720px) {
   .search__input {
     min-width: 300px;

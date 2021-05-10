@@ -39,6 +39,10 @@ window.data = {
   searchValue: null,
   mediaTypes: null,
   filters: {},
+  selectedFiltersList: [],
+  sortingSet: false,
+  filtersSelected: false,
+  sortingOption: false,
   totalHits: null,
   responseData: RESPONSE_DATA_FILES,
 };
@@ -54,6 +58,7 @@ window.openHomePage = e => {
   window.data.requestMade = false;
   window.data.searchValue = null;
   window.data.mediaTypes = null;
+  window.data.sortingSet = false;
   removeClass('no_image__background', document.body);
 };
 
@@ -99,24 +104,45 @@ function ResponseLayout(searchPosition) {
 
 function Filters() {
   return `
-  <div class="filters__wrapper">
+  <form id="filters" class="filters__wrapper">
     ${getFiltersByCategories(window.data.filters)}
-  </div>`;
+  </form>`;
 }
 
 function Filter(filterName, filterCounter) {
   return `
     <label class="filter__label"> 
+      <input value="${filterName}" 
+        name="${filterName}" 
+        type="checkbox"
+        ${isFilterSelected(window.data.selectedFiltersList, filterName) ? `checked="checked"` : ``}
+        onchange="window.selectFilter(this.value); renderApp();"
+        onclick="window.checkFilter(this); renderApp();">
       <span class="text">${filterName} </span>
-      <span class="filter__counter">(${filterCounter})</span>
-      <input value="${filterName}" name="${filterName}" type="checkbox">
+      <span class="filter__counter">(${filterCounter})</span>      
     </label>
   `;
 }
+window.checkFilter = filter => {
+  //console.log(filter);
+  if (isFilterSelected(filter.value)) {
+    window.removeFilter(filter.value);
+  }
+};
+
+window.selectFilter = function (value) {
+  window.data.filtersSelected = true;
+  window.data.selectedFiltersList.push(value);
+};
+
+function isFilterSelected(filtersSelected, filterName) {
+  return filtersSelected.indexOf(filterName) !== -1;
+}
+
 function Sort() {
   return `
   <label>Sort by:
-    <select name="mediaSort" id="mediaSort">
+    <select name="mediaSort"  id="mediaSort" onchange="window.data.sortMedia(window.data.flattenedData, event); window.renderApp()">
       ${getSortOptions()}
     </select>
   </label>`;
@@ -128,7 +154,16 @@ function getSortOptions() {
       if (isOptionNeeded(option)) {
         return ['ascending', 'descending']
           .map(sortType => {
-            return `<option value="${option}_${sortType}" class="sorting__option">
+            return `<option 
+                      value="${option}_${sortType}" 
+                      class="sorting__option"
+                      ${
+                        window.data.sortingSet &&
+                        window.data.sortingOption === `${option}_${sortType}`
+                          ? `selected="selected"`
+                          : ''
+                      }"
+                      >
                    ${SORTING_OPTIONS_TEXT[option]} ${
               sortType === 'ascending' ? '&#8593;' : '&#8595;'
             }
@@ -154,15 +189,64 @@ function ResponseContent() {
     window.data.searchValue
   }</h3>  
       ${Sort()}
-      </div>
-    ${MediaContentCards()}
+    </div>
+    ${SelectedFilters()}
+    ${MediaContentCards(window.data.flattenedData)}
   </div>
   `;
 }
 
-function MediaContentCards() {
-  return `${window.data.flattenedData.map(dataItem => Card(dataItem)).join('')}`;
+function SelectedFilters() {
+  return `<div class="selected__filters">
+      ${window.data.filtersSelected ? showSelectedFilters() : ''}
+    </div>`;
 }
+
+function showSelectedFilters() {
+  return `${window.data.selectedFiltersList
+    .map(filterSelected => SelectedFilter(filterSelected))
+    .join('')}`;
+}
+
+function SelectedFilter(filterSelected) {
+  return `<div class="filter__selected_container">
+            <span class="filter__selected">${filterSelected}</span>
+            <button class="remove__filter" 
+              onclick="window.removeFilter(this.value); renderApp();" 
+              value="${filterSelected}">x</button>
+          </div>`;
+}
+
+window.removeFilter = filterName => {
+  const deleteIndex = window.data.selectedFiltersList.indexOf(filterName);
+  window.data.selectedFiltersList.splice(deleteIndex, 1);
+};
+
+function MediaContentCards(data) {
+  return `${data.map(dataItem => Card(dataItem)).join('')}`;
+}
+
+window.data.sortMedia = (data, e) => {
+  const [option, direction] = e.target.value.split('_');
+  window.data.sortingOption = e.target.value;
+  window.data.sortingSet = true;
+  // console.log(data.map(item=>item[option]).join(", "));
+  sortByDirection[direction](data, option);
+  //  console.log(data.map(item=>item[option]).join(", "));
+};
+
+const sortByDirection = {
+  ascending: function (data, option) {
+    data.sort((current, next) =>
+      current[option] ? current[option] - next[option] : 0 - next[option],
+    );
+  },
+  descending: function (data, option) {
+    data.sort((current, next) =>
+      current[option] ? next[option] - current[option] : next[option] - 0,
+    );
+  },
+};
 
 function Card(dataItem) {
   return `
@@ -218,6 +302,9 @@ function SearchButton() {
 window.searchByTerm = e => {
   e.preventDefault();
   window.data.totalHits = null;
+  window.data.sortingSet = false;
+  window.data.selectedFiltersList = [];
+  window.data.filtersSelected = false;
   window.data.filters = {};
   requestMedia(e);
   prepareReponseDataForRendering();

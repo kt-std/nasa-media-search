@@ -49,6 +49,7 @@ export const MEDIA_TYPE_SORTING_OPTIONS = {
   audio: ['duration', 'date', 'sizeValue', 'bitrateValue'],
   image: ['date', 'sizeValue', 'resolutionValue'],
 };
+
 export const SORTING_OPTIONS_TEXT = {
   duration: 'duration',
   date: 'creation date',
