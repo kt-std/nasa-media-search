@@ -116,23 +116,20 @@ function Filter(filterName, filterCounter) {
         name="${filterName}" 
         type="checkbox"
         ${isFilterSelected(window.data.selectedFiltersList, filterName) ? `checked="checked"` : ``}
-        onchange="window.selectFilter(this.value); renderApp();"
-        onclick="window.checkFilter(this); renderApp();">
+        onchange="window.selectFilter(this.value); renderApp();">
       <span class="text">${filterName} </span>
       <span class="filter__counter">(${filterCounter})</span>      
     </label>
   `;
 }
-window.checkFilter = filter => {
-  //console.log(filter);
-  if (isFilterSelected(filter.value)) {
-    window.removeFilter(filter.value);
-  }
-};
 
 window.selectFilter = function (value) {
   window.data.filtersSelected = true;
-  window.data.selectedFiltersList.push(value);
+  if (!isFilterSelected(window.data.selectedFiltersList, value)) {
+    window.data.selectedFiltersList.push(value);
+  } else {
+    window.removeFilter(value);
+  }
 };
 
 function isFilterSelected(filtersSelected, filterName) {
