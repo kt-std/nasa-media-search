@@ -39,7 +39,7 @@ export function getDurationValueFromString(duration) {
     const time = duration.match(/\d{1,}:\d{2}:\d{2}/g)[0];
     return getSecondsFromDurationValue(time);
   }
-  return null;
+  return undefined;
 }
 
 function getSecondsFromDurationValue(time) {

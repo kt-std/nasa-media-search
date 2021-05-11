@@ -20,20 +20,6 @@ import {
 } from './utils';
 import './style.css';
 
-/*
-For each media type filtering have to be performed by different categories:
-
-    Video filter by: keywords, location, photographer; 
-    Audio filter by: keywords, center, bitrate;
-    Image filter by: keywords, center, creator, color space, image size, album.
-
-For each media type sorting have to be performed differently:
-
-    Video sort by: creation date, duration, file size, frame rate; 
-    Audio sort by: creation date, duration, file size, bitrate;
-    Image sort by: creation date, file size, resolution.
-*/
-
 window.data = {
   requestMade: false,
   searchValue: null,
@@ -41,7 +27,9 @@ window.data = {
   filters: {},
   selectedFiltersList: [],
   sortingSet: false,
+  filteredData: [],
   filtersSelected: false,
+  performFiltering: false,
   sortingOption: false,
   totalHits: null,
   responseData: RESPONSE_DATA_FILES,
@@ -58,7 +46,7 @@ window.openHomePage = e => {
   window.data.requestMade = false;
   window.data.searchValue = null;
   window.data.mediaTypes = null;
-  window.data.sortingSet = false;
+  resetState();
   removeClass('no_image__background', document.body);
 };
 
@@ -109,11 +97,12 @@ function Filters() {
   </form>`;
 }
 
-function Filter(filterName, filterCounter) {
+function Filter(filterName, filterCounter, categorie) {
   return `
     <label class="filter__label"> 
       <input value="${filterName}" 
-        name="${filterName}" 
+        name="${filterName}"
+        data-categorie="${categorie}" 
         type="checkbox"
         ${isFilterSelected(window.data.selectedFiltersList, filterName) ? `checked="checked"` : ``}
         onchange="window.selectFilter(this.value); renderApp();">
@@ -139,7 +128,11 @@ function isFilterSelected(filtersSelected, filterName) {
 function Sort() {
   return `
   <label>Sort by:
-    <select name="mediaSort"  id="mediaSort" onchange="window.data.sortMedia(window.data.flattenedData, event); window.renderApp()">
+    <select name="mediaSort"  
+      id="mediaSort" 
+      onchange="window.data.sortMedia(
+      ${window.data.filtersSelected ? 'window.data.filteredData' : 'window.data.flattenedData'}
+      , event); window.renderApp()">
       ${getSortOptions()}
     </select>
   </label>`;
@@ -188,7 +181,11 @@ function ResponseContent() {
       ${Sort()}
     </div>
     ${SelectedFilters()}
-    ${MediaContentCards(window.data.flattenedData)}
+    ${
+      !window.data.performFiltering
+        ? MediaContentCards(window.data.flattenedData)
+        : MediaContentCards(window.data.filteredData)
+    }
   </div>
   `;
 }
@@ -196,7 +193,49 @@ function ResponseContent() {
 function SelectedFilters() {
   return `<div class="selected__filters">
       ${window.data.filtersSelected ? showSelectedFilters() : ''}
+      ${window.data.selectedFiltersList.length ? FilterButton() : ''}
     </div>`;
+}
+
+function FilterButton() {
+  return `<button onclick='window.filterItems();renderApp()' 
+            class="filter__button">Apply filters</button>`;
+}
+
+window.filterItems = () => {
+  window.data.performFiltering = true;
+  window.data.filteredData = [];
+  const selectedFiltersWithCategories = getSelectedFiltersWithCategories();
+  selectedFiltersWithCategories.forEach(filter => {
+    const categorie = filter.categorie;
+    window.data.flattenedData.forEach(dataItem => {
+      if (window.data.filteredData.indexOf(dataItem) === -1 && dataItem[categorie]) {
+        if (isArray(dataItem[categorie])) {
+          //find element in array case sensitive performFiltering when no filters
+          if (isElementInArray(dataItem[categorie], filter.value)) {
+            window.data.filteredData.push(dataItem);
+          }
+        } else {
+          if (dataItem[categorie].toUpperCase() === filter.value) {
+            window.data.filteredData.push(dataItem);
+          }
+        }
+      }
+    });
+  });
+};
+
+function isElementInArray(data, element) {
+  return data.some(dataItem => dataItem.toUpperCase() === element);
+}
+
+function getSelectedFiltersWithCategories() {
+  return Array.from(document.querySelectorAll('#filters input:checked')).map(selectedFilter => {
+    return {
+      value: selectedFilter.value,
+      categorie: selectedFilter.getAttribute('data-categorie'),
+    };
+  });
 }
 
 function showSelectedFilters() {
@@ -217,33 +256,35 @@ function SelectedFilter(filterSelected) {
 window.removeFilter = filterName => {
   const deleteIndex = window.data.selectedFiltersList.indexOf(filterName);
   window.data.selectedFiltersList.splice(deleteIndex, 1);
+  if (!window.data.selectedFiltersList.length) {
+    //console.log(window.data.selectedFiltersList.length);
+    window.data.performFiltering = false;
+  }
 };
 
 function MediaContentCards(data) {
   return `${data.map(dataItem => Card(dataItem)).join('')}`;
 }
-
+///check if sorting without value is done right
 window.data.sortMedia = (data, e) => {
   const [option, direction] = e.target.value.split('_');
   window.data.sortingOption = e.target.value;
   window.data.sortingSet = true;
   // console.log(data.map(item=>item[option]).join(", "));
-  sortByDirection[direction](data, option);
+  data = sortByDirection(data, option, direction);
   //  console.log(data.map(item=>item[option]).join(", "));
+  // console.log(data.map(item=>item[option]).join(', '));
 };
 
-const sortByDirection = {
-  ascending: function (data, option) {
-    data.sort((current, next) =>
-      current[option] ? current[option] - next[option] : 0 - next[option],
-    );
-  },
-  descending: function (data, option) {
-    data.sort((current, next) =>
-      current[option] ? next[option] - current[option] : next[option] - 0,
-    );
-  },
-};
+function sortByDirection(data, option, direction) {
+  const undefinedItems = data.filter(dataItem => dataItem[option] === undefined);
+  const definedItems = data.filter(dataItem => dataItem[option] !== undefined);
+  return definedItems
+    .sort((current, next) =>
+      direction === 'ascending' ? current[option] - next[option] : next[option] - current[option],
+    )
+    .concat(undefinedItems);
+}
 
 function Card(dataItem) {
   return `
@@ -298,14 +339,19 @@ function SearchButton() {
 
 window.searchByTerm = e => {
   e.preventDefault();
-  window.data.totalHits = null;
-  window.data.sortingSet = false;
-  window.data.selectedFiltersList = [];
-  window.data.filtersSelected = false;
-  window.data.filters = {};
+  resetState();
   requestMedia(e);
   prepareReponseDataForRendering();
 };
+
+function resetState() {
+  window.data.totalHits = null;
+  window.data.sortingSet = false;
+  window.data.selectedFiltersList = [];
+  window.data.performFiltering = false;
+  window.data.filtersSelected = false;
+  window.data.filters = {};
+}
 
 function getFiltersByCategories(filtersContainer) {
   return Object.keys(filtersContainer)
@@ -314,7 +360,7 @@ function getFiltersByCategories(filtersContainer) {
       <div class="filter__item_wrapper">
         ${Object.keys(filtersContainer[filterName])
           .map(filterContent => {
-            return Filter(filterContent, filtersContainer[filterName][filterContent]);
+            return Filter(filterContent, filtersContainer[filterName][filterContent], filterName);
           })
           .join('')}
       </div>`;
@@ -323,8 +369,7 @@ function getFiltersByCategories(filtersContainer) {
 }
 
 function prepareReponseDataForRendering() {
-  const flattenedData = getResponseData();
-  window.data.flattenedData = flattenedData;
+  window.data.flattenedData = getResponseData();
   getMetadataForDataItem(window.data.flattenedData, window.data.responseData);
   getFiltersDataFromMetadata(
     window.data.flattenedData,
@@ -385,14 +430,15 @@ function transformKeyValueToNumber(key, dataItem, metadataValue) {
       dataItem[key] = getImageAlbum(metadataValue);
       break;
     case 'duration':
-      dataItem[key] = getDurationValueFromString(metadataValue);
+      dataItem[key] = getDurationValueFromString(metadataValue) + Math.floor(Math.random() * 100);
       break;
     case 'size':
       dataItem[key] = getSizeInKBFromString(metadataValue);
       dataItem[`${key}Value`] = dataItem[key].value;
       break;
     case 'bitrate':
-      dataItem[`${key}Value`] = getNumberFromString(metadataValue);
+      dataItem[`${key}Value`] =
+        getNumberFromString(metadataValue) + Math.floor(Math.random() * 100);
       dataItem[key] = metadataValue;
       break;
     case 'resolution':
@@ -427,7 +473,7 @@ function getResolutionFromString(value) {
 }
 
 function getNumberFromString(value) {
-  return value ? parseInt(value) : null;
+  return value ? parseInt(value) : undefined;
 }
 
 function getMetadataForDataItem(data, responseData) {
@@ -445,7 +491,7 @@ function getFiltersByKeyName(data, key, filtersContainer) {
 }
 
 function updateFilterValue(filtersContainer, keyword) {
-  if (keyword !== null) {
+  if (keyword !== undefined) {
     if (!filtersContainer[keyword.toUpperCase()]) {
       filtersContainer[keyword.toUpperCase()] = 1;
     } else {
