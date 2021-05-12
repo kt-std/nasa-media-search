@@ -257,7 +257,6 @@ window.removeFilter = filterName => {
   const deleteIndex = window.data.selectedFiltersList.indexOf(filterName);
   window.data.selectedFiltersList.splice(deleteIndex, 1);
   if (!window.data.selectedFiltersList.length) {
-    //console.log(window.data.selectedFiltersList.length);
     window.data.performFiltering = false;
   }
 };
@@ -265,26 +264,22 @@ window.removeFilter = filterName => {
 function MediaContentCards(data) {
   return `${data.map(dataItem => Card(dataItem)).join('')}`;
 }
-///check if sorting without value is done right
+
 window.data.sortMedia = (data, e) => {
   const [option, direction] = e.target.value.split('_');
   window.data.sortingOption = e.target.value;
   window.data.sortingSet = true;
-  // console.log(data.map(item=>item[option]).join(", "));
-  data = sortByDirection(data, option, direction);
-  //  console.log(data.map(item=>item[option]).join(", "));
-  // console.log(data.map(item=>item[option]).join(', '));
+  sortByDirection[direction](data, option);
 };
 
-function sortByDirection(data, option, direction) {
-  const undefinedItems = data.filter(dataItem => dataItem[option] === undefined);
-  const definedItems = data.filter(dataItem => dataItem[option] !== undefined);
-  return definedItems
-    .sort((current, next) =>
-      direction === 'ascending' ? current[option] - next[option] : next[option] - current[option],
-    )
-    .concat(undefinedItems);
-}
+const sortByDirection = {
+  ascending: function (data, option) {
+    data.sort((current, next) => (current[option] ? current[option] - next[option] : true));
+  },
+  descending: function (data, option) {
+    data.sort((current, next) => (current[option] ? next[option] - current[option] : true));
+  },
+};
 
 function Card(dataItem) {
   return `
