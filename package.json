@@ -1,0 +1,67 @@
+{
+  "name": "frontend-2021-framework",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.html",
+  "scripts": {
+    "start": "parcel ./index.html",
+    "lint:js": "npx eslint --cache **/*.js",
+    "lint:js:fix": "npm run lint:js -- --fix",
+    "prettify": "npx prettier --write **/*.{js,css,md,html}",
+    "lint": "npm run lint:js:fix && npm run prettify",
+    "lint:staged": "npx lint-staged",
+    "prebuild": "shx rm -rf dist/*",
+    "build": "parcel build ./index.html --public-url ./",
+    "deploy": "push-dir --dir=dist --branch=gh-pages --cleanup --verbose"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kt-std/nmse.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/kt-std/nmse/issues"
+  },
+  "homepage": "https://github.com/kt-std/nmse#readme",
+  "dependencies": {
+    "assets": "^3.0.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.13.14",
+    "@babel/eslint-parser": "^7.13.14",
+    "@babel/preset-env": "^7.13.12",
+    "babel-preset-env": "^1.7.0",
+    "eslint": "^7.23.0",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-prettier": "^3.3.1",
+    "lint-staged": "^10.5.4",
+    "parcel-bundler": "1.12.3",
+    "pre-commit": "^1.2.2",
+    "prettier": "^2.2.1",
+    "push-dir": "^0.4.1",
+    "shx": "^0.3.3"
+  },
+  "babel": {
+    "presets": [
+      [
+        "env",
+        {
+          "targets": {
+            "node": "current"
+          }
+        }
+      ]
+    ]
+  },
+  "pre-commit": "lint:staged",
+  "lint-staged": {
+    "**/*.{js,jsx}": [
+      "eslint --cache --fix"
+    ],
+    "**/*.{js,css,md,html}": [
+      "prettier --write"
+    ]
+  }
+}
