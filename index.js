@@ -269,6 +269,7 @@ window.removeFilter = filter => {
   window.data.selectedFiltersList.splice(deleteIndex, 1);
   if (!window.data.selectedFiltersList.length) {
     window.data.performFiltering = false;
+    window.data.filtersSelected = false;
     window.data.totalHits = window.data.flattenedData.length;
   }
 };
