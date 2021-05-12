@@ -26,7 +26,6 @@ export const RESPONSE_DATA_FILES = {
   },
 };
 
-//creator === photographer
 export const FILTERS_BY_MEDIA_TYPE = {
   video: ['keywords', 'location', 'creator'],
   audio: ['keywords', 'center', 'bitrate'],

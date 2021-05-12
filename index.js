@@ -6,17 +6,14 @@ import {
   RESPONSE_DATA_FILES,
 } from './data.js';
 import {
-  getParametersFromNodeList,
-  getSeconds,
-  flat,
-  addClass,
+  requestMedia,
   removeClass,
-  getIndexByString,
-  MEDATADA_KEYS_BY_MEDIA_TYPE,
-  removeSpacesFromLink,
-  calculateTotalHits,
-  getConciseContentFromRespond,
-  getDurationValueFromString,
+  isFilterSelected,
+  isOptionNeeded,
+  isElementInArray,
+  sortByDirection,
+  resetState,
+  prepareReponseDataForRendering,
 } from './utils';
 import './style.css';
 
@@ -46,8 +43,15 @@ window.openHomePage = e => {
   window.data.requestMade = false;
   window.data.searchValue = null;
   window.data.mediaTypes = null;
-  resetState();
+  resetState(window.data);
   removeClass('no_image__background', document.body);
+};
+
+window.searchByTerm = e => {
+  e.preventDefault();
+  resetState(window.data);
+  requestMedia(window.data);
+  prepareReponseDataForRendering(window.data);
 };
 
 window.renderApp();
@@ -64,8 +68,8 @@ function SearchLayout(searchPosition) {
   ${searchPosition === 'top' ? Logo() : ``}
   <form onsubmit="window.searchByTerm(event); window.renderApp()" id="searchForm" class="form">    
     <div class="search__box">    
-      ${MediaTypeSwitcher()}
-      ${SearchInput()}
+      ${MediaTypeSwitcher(window.data)}
+      ${SearchInput(window.data)}
     </div>
       ${SearchButton()}
   </form>
@@ -77,6 +81,46 @@ function Logo() {
     <a href="/" onclick="window.openHomePage(event); window.renderApp()">
       <img src="${require('/assets/logo.svg')}"  class="logo">
     </a>`;
+}
+
+function MediaTypeSwitcher(storage) {
+  return `
+  <label for="mediaSwitcherButton" class="media__switcher_label">All media types</label>
+  <input type="checkbox" class="media__switcher_button" id="mediaSwitcherButton">
+  <div class="media__switcher_wrapper">
+    ${['image', 'audio', 'video']
+      .map(mediaType => {
+        return `
+          <div class="input__wrapper">
+            <input type="checkbox" 
+                         class="mediaType"
+                         name="mediaType" 
+                         id="${mediaType}" 
+                         value="${mediaType}"
+                         ${
+                           storage.mediaTypes !== null &&
+                           storage.mediaTypes.indexOf(mediaType) !== -1
+                             ? `checked`
+                             : ``
+                         }>
+            <label for="${mediaType}">${mediaType}</label>
+          </div>
+          `;
+      })
+      .join('')}
+  </div>`;
+}
+
+function SearchInput(storage) {
+  return `<input type="text" 
+                 id="searchInput" 
+                 placeholder='Search for ... (e.g. "Sun")'
+                 class="search__input"
+                 value="${storage.searchValue !== null ? storage.searchValue : ``}">`;
+}
+
+function SearchButton() {
+  return `<button class="search__button">search</button>`;
 }
 
 function ResponseLayout(searchPosition) {
@@ -93,8 +137,24 @@ function ResponseLayout(searchPosition) {
 function Filters() {
   return `
   <form id="filters" class="filters__wrapper">
-    ${getFiltersByCategories(window.data.filters)}
+    ${FiltersByCategories(window.data.filters)}
   </form>`;
+}
+
+function FiltersByCategories(filtersContainer) {
+  return Object.keys(filtersContainer)
+    .map(filterName => {
+      return `
+      <h3 class="filter__heading">${FILTERS_TEXT[filterName]}</h3>
+      <div class="filter__item_wrapper">
+        ${Object.keys(filtersContainer[filterName])
+          .map(filterContent => {
+            return Filter(filterContent, filtersContainer[filterName][filterContent], filterName);
+          })
+          .join('')}
+      </div>`;
+    })
+    .join('');
 }
 
 function Filter(filterName, filterCounter, categorie) {
@@ -109,55 +169,61 @@ function Filter(filterName, filterCounter, categorie) {
             ? `checked="checked"`
             : ``
         }
-        onchange="window.selectFilter(this); renderApp();">
+        onchange="window.selectFilter(window.data, this); renderApp();">
       <span class="text">${filterName} </span>
       <span class="filter__counter">(${filterCounter})</span>      
     </label>
   `;
 }
 
-window.selectFilter = function (filter) {
+window.selectFilter = function (storage, filter) {
   const { value } = filter,
     categorie = filter.getAttribute('data-categorie');
-  window.data.filtersSelected = true;
-  if (!isFilterSelected(window.data.selectedFiltersList, value, categorie)) {
-    window.data.selectedFiltersList.push({ value, categorie });
+  storage.filtersSelected = true;
+  if (!isFilterSelected(storage.selectedFiltersList, value, categorie)) {
+    storage.selectedFiltersList.push({ value, categorie });
   } else {
-    window.removeFilter(filter);
+    window.removeFilter(storage, filter);
   }
 };
 
-function isFilterSelected(filtersSelected, filterName, categorie) {
-  return filtersSelected.some(
-    filter => filter.categorie === categorie && filter.value === filterName,
-  );
+function ResponseContent() {
+  return `
+  <div class="cards__wrapper">
+    <div class="sort_hits_wrapper">
+      <h3 class="total_hits">
+        Total hits ${window.data.totalHits} for ${window.data.searchValue}
+      </h3>  
+      ${SortSelect()}
+    </div>
+    ${SelectedFilters(window.data)}
+    ${MediaContentCards(window.data)}
+  </div>
+  `;
 }
 
-function Sort() {
+function SortSelect() {
   return `
   <label>Sort by:
     <select name="mediaSort"  
       id="mediaSort" 
-      onchange="window.data.sortMedia(
-      ${window.data.filtersSelected ? 'window.data.filteredData' : 'window.data.flattenedData'}
-      , event); window.renderApp()">
-      ${getSortOptions()}
+      onchange="window.sortMedia(window.data, event); window.renderApp()">
+      ${SortOptions(window.data)}
     </select>
   </label>`;
 }
 
-function getSortOptions() {
+function SortOptions(storage) {
   return Object.keys(SORTING_OPTIONS_TEXT)
     .map(option => {
-      if (isOptionNeeded(option)) {
+      if (isOptionNeeded(storage, option)) {
         return ['ascending', 'descending']
           .map(sortType => {
             return `<option 
                       value="${option}_${sortType}" 
                       class="sorting__option"
                       ${
-                        window.data.sortingSet &&
-                        window.data.sortingOption === `${option}_${sortType}`
+                        storage.sortingSet && storage.sortingOption === `${option}_${sortType}`
                           ? `selected="selected"`
                           : ''
                       }"
@@ -173,392 +239,88 @@ function getSortOptions() {
     .join('');
 }
 
-function isOptionNeeded(option) {
-  return window.data.mediaTypes.some(mediaType => {
-    return MEDIA_TYPE_SORTING_OPTIONS[mediaType].indexOf(option) !== -1;
-  });
-}
+window.sortMedia = (storage, e) => {
+  const data = storage.filtersSelected ? storage.filteredData : storage.flattenedData;
+  const [option, direction] = e.target.value.split('_');
+  storage.sortingOption = e.target.value;
+  storage.sortingSet = true;
+  sortByDirection[direction](data, option);
+};
 
-function ResponseContent() {
-  return `
-  <div class="cards__wrapper">
-    <div class="sort_hits_wrapper">
-      <h3 class="total_hits">Total hits ${window.data.totalHits} for ${
-    window.data.searchValue
-  }</h3>  
-      ${Sort()}
-    </div>
-    ${SelectedFilters()}
-    ${
-      !window.data.performFiltering
-        ? MediaContentCards(window.data.flattenedData)
-        : MediaContentCards(window.data.filteredData)
-    }
-  </div>
-  `;
-}
-
-function SelectedFilters() {
+function SelectedFilters(storage) {
   return `<div class="selected__filters">
-      ${window.data.filtersSelected ? showSelectedFilters() : ''}
-      ${window.data.selectedFiltersList.length ? FilterButton() : ''}
+      ${storage.filtersSelected ? showSelectedFilters(storage) : ''}
+      ${storage.selectedFiltersList.length ? FilterButton() : ''}
     </div>`;
 }
 
 function FilterButton() {
-  return `<button onclick='window.filterItems();renderApp()' 
+  return `<button onclick='window.filterItems(window.data);renderApp()' 
             class="filter__button">Apply filters</button>`;
 }
 
-window.filterItems = () => {
-  window.data.performFiltering = true;
-  window.data.filteredData = [];
-  const selectedFiltersWithCategories = getSelectedFiltersWithCategories();
-  selectedFiltersWithCategories.forEach(filter => {
+window.filterItems = storage => {
+  storage.performFiltering = true;
+  storage.filteredData = [];
+  storage.selectedFiltersList.forEach(filter => {
     const categorie = filter.categorie;
-    window.data.flattenedData.forEach(dataItem => {
-      if (window.data.filteredData.indexOf(dataItem) === -1 && dataItem[categorie]) {
-        if (isArray(dataItem[categorie])) {
-          //find element in array case sensitive performFiltering when no filters
+    storage.flattenedData.forEach(dataItem => {
+      if (storage.filteredData.indexOf(dataItem) === -1 && dataItem[categorie]) {
+        if (Array.isArray(dataItem[categorie])) {
           if (isElementInArray(dataItem[categorie], filter.value)) {
-            window.data.filteredData.push(dataItem);
+            storage.filteredData.push(dataItem);
           }
         } else {
           if (dataItem[categorie].toUpperCase() === filter.value) {
-            window.data.filteredData.push(dataItem);
+            storage.filteredData.push(dataItem);
           }
         }
       }
     });
   });
-  window.data.totalHits = window.data.filteredData.length;
+  storage.totalHits = storage.filteredData.length;
 };
-
-function isElementInArray(data, element) {
-  return data.some(dataItem => dataItem.toUpperCase() === element);
-}
-
-function getSelectedFiltersWithCategories() {
-  return Array.from(document.querySelectorAll('#filters input:checked')).map(selectedFilter => {
-    return {
-      value: selectedFilter.value,
-      categorie: selectedFilter.getAttribute('data-categorie'),
-    };
-  });
-}
-
-function showSelectedFilters() {
-  return `${window.data.selectedFiltersList.map(filter => SelectedFilter(filter)).join('')}`;
-}
 
 function SelectedFilter(filterSelected) {
   return `<div class="filter__selected_container">
             <span class="filter__selected">${filterSelected.categorie}: ${filterSelected.value}</span>
             <button class="remove__filter" 
-              onclick="window.removeFilter(this); renderApp();" 
+              onclick="window.removeFilter(window.data, this); renderApp();" 
               value="${filterSelected.value}" data-categorie="${filterSelected.categorie}">x</button>
           </div>`;
 }
 
-window.removeFilter = filter => {
+function showSelectedFilters(storage) {
+  return `${storage.selectedFiltersList.map(filter => SelectedFilter(filter)).join('')}`;
+}
+
+window.removeFilter = (storage, filter) => {
   const { value: filterName } = filter,
     categorie = filter.getAttribute('data-categorie');
-  const deleteIndex = window.data.selectedFiltersList.findIndex(
+  const deleteIndex = storage.selectedFiltersList.findIndex(
     element => element.value === filterName && categorie === element.categorie,
   );
-  window.data.selectedFiltersList.splice(deleteIndex, 1);
-  if (!window.data.selectedFiltersList.length) {
-    window.data.performFiltering = false;
-    window.data.filtersSelected = false;
-    window.data.totalHits = window.data.flattenedData.length;
+  storage.selectedFiltersList.splice(deleteIndex, 1);
+  if (!storage.selectedFiltersList.length) {
+    storage.performFiltering = false;
+    storage.filtersSelected = false;
+    storage.totalHits = storage.flattenedData.length;
   }
 };
 
-function MediaContentCards(data) {
+function MediaContentCards(storage) {
+  const data = !storage.performFiltering ? storage.flattenedData : storage.filteredData;
   return `${data.map(dataItem => Card(dataItem)).join('')}`;
 }
 
-window.data.sortMedia = (data, e) => {
-  const [option, direction] = e.target.value.split('_');
-  window.data.sortingOption = e.target.value;
-  window.data.sortingSet = true;
-  sortByDirection[direction](data, option);
-};
-
-const sortByDirection = {
-  ascending: function (data, option) {
-    data.sort((current, next) => (current[option] ? current[option] - next[option] : true));
-  },
-  descending: function (data, option) {
-    data.sort((current, next) => (current[option] ? next[option] - current[option] : true));
-  },
-};
-
 function Card(dataItem) {
   return `
-  <div class="card__item ${
-    dataItem.mediaType === 'audio' ? 'audio' : dataItem.mediaType === 'video' ? 'video' : 'image'
-  }" style="background-image: url(
+  <div class="card__item 
     ${
-      dataItem.previewImage !== null ? dataItem.previewImage : require('./assets/audio.svg')
-    })" data-title="${dataItem.title}"></div>
-  `;
-}
-
-function MediaTypeSwitcher() {
-  return `
-  <label for="mediaSwitcherButton" class="media__switcher_label">All media types</label>
-  <input type="checkbox" class="media__switcher_button" id="mediaSwitcherButton">
-  <div class="media__switcher_wrapper">
-    ${['image', 'audio', 'video']
-      .map(mediaType => {
-        return `
-          <div class="input__wrapper">
-            <input type="checkbox" 
-                         class="mediaType"
-                         name="mediaType" 
-                         id="${mediaType}" 
-                         value="${mediaType}"
-                         ${
-                           window.data.mediaTypes !== null &&
-                           window.data.mediaTypes.indexOf(mediaType) !== -1
-                             ? `checked`
-                             : ``
-                         }>
-            <label for="${mediaType}">${mediaType}</label>
-          </div>
-          `;
-      })
-      .join('')}
+      dataItem.mediaType === 'audio' ? 'audio' : dataItem.mediaType === 'video' ? 'video' : 'image'
+    }" 
+    style="background-image: url(
+    ${dataItem.previewImage !== null ? dataItem.previewImage : require('./assets/audio.svg')})" 
+    data-title="${dataItem.title}">
   </div>`;
 }
-
-function SearchInput() {
-  return `<input type="text" 
-                 id="searchInput" 
-                 placeholder='Search for ... (e.g. "Sun")'
-                 class="search__input"
-                 value="${window.data.searchValue !== null ? window.data.searchValue : ``}">`;
-}
-
-function SearchButton() {
-  return `<button class="search__button">search</button>`;
-}
-
-window.searchByTerm = e => {
-  e.preventDefault();
-  resetState();
-  requestMedia(e);
-  prepareReponseDataForRendering();
-};
-
-function resetState() {
-  window.data.totalHits = null;
-  window.data.sortingSet = false;
-  window.data.selectedFiltersList = [];
-  window.data.performFiltering = false;
-  window.data.filtersSelected = false;
-  window.data.filters = {};
-}
-
-function getFiltersByCategories(filtersContainer) {
-  return Object.keys(filtersContainer)
-    .map(filterName => {
-      return `<h3 class="filter__heading">${FILTERS_TEXT[filterName]}</h3>
-      <div class="filter__item_wrapper">
-        ${Object.keys(filtersContainer[filterName])
-          .map(filterContent => {
-            return Filter(filterContent, filtersContainer[filterName][filterContent], filterName);
-          })
-          .join('')}
-      </div>`;
-    })
-    .join('');
-}
-
-function prepareReponseDataForRendering() {
-  window.data.flattenedData = getResponseData();
-  getMetadataForDataItem(window.data.flattenedData, window.data.responseData);
-  getFiltersDataFromMetadata(
-    window.data.flattenedData,
-    window.data.mediaTypes,
-    window.data.responseData,
-  );
-  getFiltersFromLists(window.data.flattenedData, window.data.mediaTypes, window.data.filters);
-  window.data.splittedData = splitContentByMediaTypes(
-    window.data.mediaTypes,
-    window.data.flattenedData,
-  );
-  window.data.totalHits = window.data.flattenedData.length;
-}
-
-function getFiltersFromLists(data, mediaTypes, filtersContainer) {
-  data.forEach(dataItem => {
-    mediaTypes.forEach(mediaType => {
-      FILTERS_BY_MEDIA_TYPE[mediaType].forEach(key => {
-        if (!filtersContainer[key]) {
-          filtersContainer[key] = {};
-        }
-        if (dataItem[key]) {
-          if (isArray(dataItem[key])) {
-            dataItem[key].forEach(keyword => {
-              if (mediaType === dataItem.mediaType) {
-                updateFilterValue(filtersContainer[key], keyword);
-              }
-            });
-          } else {
-            updateFilterValue(filtersContainer[key], dataItem[key]);
-          }
-        }
-      });
-    });
-  });
-}
-
-function isArray(data) {
-  return Array.isArray(data);
-}
-
-function getFiltersDataFromMetadata(data, mediaTypes, responseData) {
-  data.forEach(dataItem => {
-    mediaTypes.forEach(mediaType => {
-      const mediaMetadata = responseData[mediaType].metadata,
-        mediaKeysNeeded = MEDATADA_KEYS_BY_MEDIA_TYPE[mediaType];
-      for (let key of Object.keys(mediaKeysNeeded)) {
-        if (dataItem.mediaType === mediaType) {
-          transformKeyValueToNumber(key, dataItem, mediaMetadata[mediaKeysNeeded[key]]);
-        }
-      }
-    });
-  });
-}
-
-function transformKeyValueToNumber(key, dataItem, metadataValue) {
-  switch (key) {
-    case 'album':
-      dataItem[key] = getImageAlbum(metadataValue);
-      break;
-    case 'duration':
-      dataItem[key] = getDurationValueFromString(metadataValue);
-      break;
-    case 'size':
-      dataItem[key] = getSizeInKBFromString(metadataValue);
-      dataItem[`${key}Value`] = dataItem[key].value;
-      break;
-    case 'bitrate':
-      dataItem[`${key}Value`] = getNumberFromString(metadataValue);
-      dataItem[key] = metadataValue;
-      break;
-    case 'resolution':
-      dataItem[key] = getResolutionFromString(metadataValue);
-      dataItem[`${key}Origin`] = metadataValue;
-      dataItem[`${key}Value`] = dataItem[key].height * dataItem[key].width;
-      break;
-    default:
-      dataItem[key] = metadataValue;
-  }
-}
-
-function getImageAlbum(value) {
-  return !value ? 'unknown' : value;
-}
-
-function getSizeInKBFromString(value) {
-  const [number, unit] = value.split(' ');
-  switch (unit.toUpperCase()) {
-    case 'KB':
-      return { number, unit, value: getNumberFromString(number) };
-    case 'MB':
-      return { number, unit, value: getNumberFromString(number) * 1024 };
-    case 'GB':
-      return { number, unit, value: getNumberFromString(number) * 1024 * 1024 };
-  }
-}
-
-function getResolutionFromString(value) {
-  const [height, width] = value.toLowerCase().split('x');
-  return { height: getNumberFromString(height), width: getNumberFromString(width), value };
-}
-
-function getNumberFromString(value) {
-  return value ? parseInt(value) : undefined;
-}
-
-function getMetadataForDataItem(data, responseData) {
-  data.forEach(dataItem => {
-    const collectionData = responseData[dataItem.mediaType].collection,
-      [metadataIndex] = getIndexByString('metadata.json', collectionData);
-    dataItem.metadata = metadataIndex;
-  });
-}
-
-function getFiltersByKeyName(data, key, filtersContainer) {
-  data.forEach(dataItem => {
-    updateFilterValue(filtersContainer[key], dataItem[key]);
-  });
-}
-
-function updateFilterValue(filtersContainer, keyword) {
-  if (keyword !== undefined) {
-    if (!filtersContainer[keyword.toUpperCase()]) {
-      filtersContainer[keyword.toUpperCase()] = 1;
-    } else {
-      filtersContainer[keyword.toUpperCase()]++;
-    }
-  }
-}
-
-function splitContentByMediaTypes(mediaTypes, data) {
-  const splittedData = {};
-  mediaTypes.forEach(mediaType => {
-    splittedData[mediaType] = data.filter(dataItem => dataItem.mediaType === mediaType);
-  });
-  return splittedData;
-}
-
-function getResponseData() {
-  return flat(
-    window.data.mediaTypes.map(mediaType => {
-      const respondData = window.data.responseData[mediaType];
-      return getConciseContentFromRespond(window, respondData.content);
-    }),
-  );
-}
-
-function requestMedia() {
-  changeStateToRequestMade();
-  const searchInputValue = document.getElementById('searchInput').value,
-    mediaTypes = getMediaTypes(),
-    requestURL = createRequestURL(searchInputValue, mediaTypes);
-  window.data.mediaTypes = setSelectedMediaTypes(mediaTypes);
-  window.data.searchValue = searchInputValue;
-  return 'Data requested';
-}
-
-function changeStateToRequestMade() {
-  window.data.requestMade = true;
-  addClass('no_image__background', document.body);
-}
-
-function createRequestURL(searchInputValue, mediaTypes) {
-  const API_URL = 'https://images-api.nasa.gov/search';
-  return `${API_URL}?q=${searchInputValue}${
-    mediaTypes.length ? `&media_type=${mediaTypes.join(',')}` : ''
-  }`;
-}
-
-function setSelectedMediaTypes(mediaTypes) {
-  return mediaTypes.length ? mediaTypes : null;
-}
-
-function getMediaTypes() {
-  const mediaTypes = document.querySelectorAll('input[name="mediaType"]:checked');
-  return getParametersFromNodeList('value', mediaTypes);
-}
-
-//todo add event enter ress on search
-/* check if checkboxes was checked to perform search via enter or onclick
- * handle errors if request is unsuccessful
- * media types neede to know which files to request
- * checkbox mediaTypes window add to renderApp
- */
