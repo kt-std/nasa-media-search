@@ -104,25 +104,33 @@ function Filter(filterName, filterCounter, categorie) {
         name="${filterName}"
         data-categorie="${categorie}" 
         type="checkbox"
-        ${isFilterSelected(window.data.selectedFiltersList, filterName) ? `checked="checked"` : ``}
-        onchange="window.selectFilter(this.value); renderApp();">
+        ${
+          isFilterSelected(window.data.selectedFiltersList, filterName, categorie)
+            ? `checked="checked"`
+            : ``
+        }
+        onchange="window.selectFilter(this); renderApp();">
       <span class="text">${filterName} </span>
       <span class="filter__counter">(${filterCounter})</span>      
     </label>
   `;
 }
 
-window.selectFilter = function (value) {
+window.selectFilter = function (filter) {
+  const { value } = filter,
+    categorie = filter.getAttribute('data-categorie');
   window.data.filtersSelected = true;
-  if (!isFilterSelected(window.data.selectedFiltersList, value)) {
-    window.data.selectedFiltersList.push(value);
+  if (!isFilterSelected(window.data.selectedFiltersList, value, categorie)) {
+    window.data.selectedFiltersList.push({ value, categorie });
   } else {
-    window.removeFilter(value);
+    window.removeFilter(filter);
   }
 };
 
-function isFilterSelected(filtersSelected, filterName) {
-  return filtersSelected.indexOf(filterName) !== -1;
+function isFilterSelected(filtersSelected, filterName, categorie) {
+  return filtersSelected.some(
+    filter => filter.categorie === categorie && filter.value === filterName,
+  );
 }
 
 function Sort() {
@@ -223,6 +231,7 @@ window.filterItems = () => {
       }
     });
   });
+  window.data.totalHits = window.data.filteredData.length;
 };
 
 function isElementInArray(data, element) {
@@ -239,25 +248,28 @@ function getSelectedFiltersWithCategories() {
 }
 
 function showSelectedFilters() {
-  return `${window.data.selectedFiltersList
-    .map(filterSelected => SelectedFilter(filterSelected))
-    .join('')}`;
+  return `${window.data.selectedFiltersList.map(filter => SelectedFilter(filter)).join('')}`;
 }
 
 function SelectedFilter(filterSelected) {
   return `<div class="filter__selected_container">
-            <span class="filter__selected">${filterSelected}</span>
+            <span class="filter__selected">${filterSelected.categorie}: ${filterSelected.value}</span>
             <button class="remove__filter" 
-              onclick="window.removeFilter(this.value); renderApp();" 
-              value="${filterSelected}">x</button>
+              onclick="window.removeFilter(this); renderApp();" 
+              value="${filterSelected.value}" data-categorie="${filterSelected.categorie}">x</button>
           </div>`;
 }
 
-window.removeFilter = filterName => {
-  const deleteIndex = window.data.selectedFiltersList.indexOf(filterName);
+window.removeFilter = filter => {
+  const { value: filterName } = filter,
+    categorie = filter.getAttribute('data-categorie');
+  const deleteIndex = window.data.selectedFiltersList.findIndex(
+    element => element.value === filterName && categorie === element.categorie,
+  );
   window.data.selectedFiltersList.splice(deleteIndex, 1);
   if (!window.data.selectedFiltersList.length) {
     window.data.performFiltering = false;
+    window.data.totalHits = window.data.flattenedData.length;
   }
 };
 
@@ -376,6 +388,7 @@ function prepareReponseDataForRendering() {
     window.data.mediaTypes,
     window.data.flattenedData,
   );
+  window.data.totalHits = window.data.flattenedData.length;
 }
 
 function getFiltersFromLists(data, mediaTypes, filtersContainer) {
@@ -425,15 +438,14 @@ function transformKeyValueToNumber(key, dataItem, metadataValue) {
       dataItem[key] = getImageAlbum(metadataValue);
       break;
     case 'duration':
-      dataItem[key] = getDurationValueFromString(metadataValue) + Math.floor(Math.random() * 100);
+      dataItem[key] = getDurationValueFromString(metadataValue);
       break;
     case 'size':
       dataItem[key] = getSizeInKBFromString(metadataValue);
       dataItem[`${key}Value`] = dataItem[key].value;
       break;
     case 'bitrate':
-      dataItem[`${key}Value`] =
-        getNumberFromString(metadataValue) + Math.floor(Math.random() * 100);
+      dataItem[`${key}Value`] = getNumberFromString(metadataValue);
       dataItem[key] = metadataValue;
       break;
     case 'resolution':

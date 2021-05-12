@@ -29,10 +29,10 @@ export function keywordIsASingleWord(keyword) {
 export function removeSpacesFromLink(link) {
   return link !== null ? link.split(' ').join('%20') : null;
 }
-
+/*
 export function calculateTotalHits(totalHitsStored, total_hits) {
   return totalHitsStored ? (totalHitsStored += total_hits) : total_hits;
-}
+}*/
 
 export function getDurationValueFromString(duration) {
   if (duration) {
@@ -59,7 +59,6 @@ export function getConciseContentFromRespond(storage, respondBody) {
       metadata: { total_hits },
     },
   } = respondBody;
-  storage.data.totalHits = calculateTotalHits(storage.data.totalHits, total_hits);
   return items.map(item => {
     const { data, href, links: [{ href: previewImage }] = [{ href: null }] } = item;
     const { keywords, date_created, center, media_type, title, secondary_creator = null } = data[0];
