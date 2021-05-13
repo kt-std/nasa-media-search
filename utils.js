@@ -6,6 +6,8 @@ import {
   RESPONSE_DATA_FILES,
 } from './data.js';
 
+import styles from './style.css';
+
 function getParametersFromNodeList(parameter, nodeList) {
   return Array.from(nodeList).map(item => item[parameter]);
 }
@@ -259,7 +261,7 @@ export function requestMedia(storage) {
 
 function changeStateToRequestMade(storage) {
   storage.requestMade = true;
-  addClass('no_image__background', document.body);
+  addClass(`${styles.no_image__background}`, document.body);
 }
 
 function createRequestURL(searchInputValue, mediaTypes) {

@@ -15,7 +15,7 @@ import {
   resetState,
   prepareReponseDataForRendering,
 } from './utils';
-import './style.css';
+import styles from './style.css';
 
 window.data = {
   requestMade: false,
@@ -44,7 +44,7 @@ window.openHomePage = e => {
   window.data.searchValue = null;
   window.data.mediaTypes = null;
   resetState(window.data);
-  removeClass('no_image__background', document.body);
+  removeClass(`${styles.no_image__background}`, document.body);
 };
 
 window.searchByTerm = e => {
@@ -62,12 +62,14 @@ function App() {
 
 function SearchLayout(searchPosition) {
   return `
-  <div class="form__wrapper ${
-    searchPosition === 'top' ? `search__form_top` : `search__form_middle`
+  <div class="${styles.form__wrapper} ${
+    searchPosition === 'top' ? `${styles.search__form_top}` : `${styles.search__form_middle}`
   }">
   ${searchPosition === 'top' ? Logo() : ``}
-  <form onsubmit="window.searchByTerm(event); window.renderApp()" id="searchForm" class="form">    
-    <div class="search__box">    
+  <form onsubmit="window.searchByTerm(event); window.renderApp()" id="searchForm" class="${
+    styles.form
+  }">    
+    <div class="${styles.search__box}">    
       ${MediaTypeSwitcher(window.data)}
       ${SearchInput(window.data)}
     </div>
@@ -79,21 +81,21 @@ function SearchLayout(searchPosition) {
 function Logo() {
   return `
     <a href="/" onclick="window.openHomePage(event); window.renderApp()">
-      <img src="${require('/assets/logo.svg')}"  class="logo">
+      <img src="${require('/assets/logo.svg')}"  class="${styles.logo}">
     </a>`;
 }
 
 function MediaTypeSwitcher(storage) {
   return `
-  <label for="mediaSwitcherButton" class="media__switcher_label">All media types</label>
-  <input type="checkbox" class="media__switcher_button" id="mediaSwitcherButton">
-  <div class="media__switcher_wrapper">
+  <label for="mediaSwitcherButton" class="${styles.media__switcher_label}">All media types</label>
+  <input type="checkbox" class="${styles.media__switcher_button}" id="mediaSwitcherButton">
+  <div class="${styles.media__switcher_wrapper}">
     ${['image', 'audio', 'video']
       .map(mediaType => {
         return `
-          <div class="input__wrapper">
+          <div class="${styles.input__wrapper}">
             <input type="checkbox" 
-                         class="mediaType"
+                         class="${styles.mediaType}"
                          name="mediaType" 
                          id="${mediaType}" 
                          value="${mediaType}"
@@ -115,18 +117,18 @@ function SearchInput(storage) {
   return `<input type="text" 
                  id="searchInput" 
                  placeholder='Search for ... (e.g. "Sun")'
-                 class="search__input"
+                 class="${styles.search__input}"
                  value="${storage.searchValue !== null ? storage.searchValue : ``}">`;
 }
 
 function SearchButton() {
-  return `<button class="search__button">search</button>`;
+  return `<button class="${styles.search__button}">search</button>`;
 }
 
 function ResponseLayout(searchPosition) {
   return `
   ${SearchLayout(searchPosition)}
-  <div class="response__layout">
+  <div class="${styles.response__layout}">
    <br>
    ${Filters()}
    <br>
@@ -136,7 +138,7 @@ function ResponseLayout(searchPosition) {
 
 function Filters() {
   return `
-  <form id="filters" class="filters__wrapper">
+  <form id="filters" class="${styles.filters__wrapper}">
     ${FiltersByCategories(window.data.filters)}
   </form>`;
 }
@@ -145,8 +147,8 @@ function FiltersByCategories(filtersContainer) {
   return Object.keys(filtersContainer)
     .map(filterName => {
       return `
-      <h3 class="filter__heading">${FILTERS_TEXT[filterName]}</h3>
-      <div class="filter__item_wrapper">
+      <h3 class="${styles.filter__heading}">${FILTERS_TEXT[filterName]}</h3>
+      <div class="${styles.filter__item_wrapper}">
         ${Object.keys(filtersContainer[filterName])
           .map(filterContent => {
             return Filter(filterContent, filtersContainer[filterName][filterContent], filterName);
@@ -159,7 +161,7 @@ function FiltersByCategories(filtersContainer) {
 
 function Filter(filterName, filterCounter, categorie) {
   return `
-    <label class="filter__label"> 
+    <label class="${styles.filter__label}"> 
       <input value="${filterName}" 
         name="${filterName}"
         data-categorie="${categorie}" 
@@ -170,8 +172,8 @@ function Filter(filterName, filterCounter, categorie) {
             : ``
         }
         onchange="window.selectFilter(window.data, this); renderApp();">
-      <span class="text">${filterName} </span>
-      <span class="filter__counter">(${filterCounter})</span>      
+      <span class="${styles.text}">${filterName} </span>
+      <span class="${styles.filter__counter}">(${filterCounter})</span>      
     </label>
   `;
 }
@@ -189,9 +191,9 @@ window.selectFilter = function (storage, filter) {
 
 function ResponseContent() {
   return `
-  <div class="cards__wrapper">
-    <div class="sort_hits_wrapper">
-      <h3 class="total_hits">
+  <div class="${styles.cards__wrapper}">
+    <div class="${styles.sort_hits_wrapper}">
+      <h3 class="${styles.total_hits}">
         Total hits ${window.data.totalHits} for ${window.data.searchValue}
       </h3>  
       ${SortSelect()}
@@ -221,7 +223,7 @@ function SortOptions(storage) {
           .map(sortType => {
             return `<option 
                       value="${option}_${sortType}" 
-                      class="sorting__option"
+                      class="${styles.sorting__option}"
                       ${
                         storage.sortingSet && storage.sortingOption === `${option}_${sortType}`
                           ? `selected="selected"`
@@ -248,7 +250,7 @@ window.sortMedia = (storage, e) => {
 };
 
 function SelectedFilters(storage) {
-  return `<div class="selected__filters">
+  return `<div class="${styles.selected__filters}">
       ${storage.filtersSelected ? showSelectedFilters(storage) : ''}
       ${storage.selectedFiltersList.length ? FilterButton() : ''}
     </div>`;
@@ -256,7 +258,7 @@ function SelectedFilters(storage) {
 
 function FilterButton() {
   return `<button onclick='window.filterItems(window.data);renderApp()' 
-            class="filter__button">Apply filters</button>`;
+            class="${styles.filter__button}">Apply filters</button>`;
 }
 
 window.filterItems = storage => {
@@ -282,9 +284,9 @@ window.filterItems = storage => {
 };
 
 function SelectedFilter(filterSelected) {
-  return `<div class="filter__selected_container">
-            <span class="filter__selected">${filterSelected.categorie}: ${filterSelected.value}</span>
-            <button class="remove__filter" 
+  return `<div class="${styles.filter__selected_container}">
+            <span class="${styles.filter__selected}">${filterSelected.categorie}: ${filterSelected.value}</span>
+            <button class="${styles.remove__filter}" 
               onclick="window.removeFilter(window.data, this); renderApp();" 
               value="${filterSelected.value}" data-categorie="${filterSelected.categorie}">x</button>
           </div>`;
@@ -315,9 +317,13 @@ function MediaContentCards(storage) {
 
 function Card(dataItem) {
   return `
-  <div class="card__item 
+  <div class="${styles.card__item} 
     ${
-      dataItem.mediaType === 'audio' ? 'audio' : dataItem.mediaType === 'video' ? 'video' : 'image'
+      dataItem.mediaType === 'audio'
+        ? `${styles.audio}`
+        : dataItem.mediaType === 'video'
+        ? `${styles.video}`
+        : `${styles.image}`
     }" 
     style="background-image: url(
     ${dataItem.previewImage !== null ? dataItem.previewImage : require('./assets/audio.svg')})" 
