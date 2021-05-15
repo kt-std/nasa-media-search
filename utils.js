@@ -125,8 +125,8 @@ function getMetadataForDataItem(data, storage) {
     .then(responsesData =>
       Promise.all(
         responsesData.map((response, i) => {
-          data[i].metadata = getItemByStringPattern('metadata.json', response);
-          //console.log(data[i].metadata);
+          const metadataLink = getItemByStringPattern('metadata.json', response);
+          data[i].metadata = metadataLink.replace(/(http)/gm, 'https');
           return getMetadataJSONPromise(data[i]);
         }),
       ),
@@ -134,7 +134,6 @@ function getMetadataForDataItem(data, storage) {
     .then(metadataPromises =>
       Promise.all(
         metadataPromises.map((metadata, i) => {
-          // console.log(metadata);
           getFiltersDataFromMetadata(metadata, data[i]);
         }),
       ),
@@ -280,10 +279,11 @@ export async function requestMedia(storage) {
       .then(data => {
         if (data.collection.links) {
           const { nextPageLinkIndex, hasPage } = hasNextPage(data.collection.links);
-          if (pagesCounter === 5 || !hasPage) {
+          if (pagesCounter === 3 || !hasPage) {
             storage.allRequestsMade = true;
           } else {
             requestURL = data.collection.links[nextPageLinkIndex].href;
+            requestURL = requestURL.replace(/(http)/gm, 'https');
             pagesCounter++;
           }
         } else {
