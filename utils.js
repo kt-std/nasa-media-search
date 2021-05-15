@@ -217,7 +217,7 @@ function transformKeyValueToNumber(key, dataItem, metadataValue) {
 }
 
 function getDurationValueFromString(duration) {
-  if (duration) {
+  if (duration && duration !== null) {
     const time = duration.match(/\d{1,}:\d{2}:\d{2}/g)[0];
     return getSecondsFromDurationValue(time);
   }
@@ -266,17 +266,19 @@ export async function requestMedia(storage) {
   storage.mediaTypes = setSelectedMediaTypes(mediaTypes);
   storage.searchValue = searchInputValue;
   storage.responseData = [];
-
+  let pagesCounter = 0;
   while (!storage.allRequestsMade) {
+    //todo add loading state
     await fetch(requestURL)
       .then(data => data.json())
       .then(data => {
         if (data.collection.links) {
           const { nextPageLinkIndex, hasPage } = hasNextPage(data.collection.links);
-          if (!hasPage) {
+          if (pagesCounter === 5 || !hasPage) {
             storage.allRequestsMade = true;
           } else {
             requestURL = data.collection.links[nextPageLinkIndex].href;
+            pagesCounter++;
           }
         } else {
           storage.allRequestsMade = true;
@@ -288,7 +290,7 @@ export async function requestMedia(storage) {
 }
 
 function hasNextPage(linksList) {
-  const nextPageLinkIndex = linksList.findIndex(linkItem => linkItem.rel === 'next');
+  const nextPageLinkIndex = linksList.findIndex((linkItem, i) => linkItem.rel === 'next');
   return nextPageLinkIndex !== -1
     ? { hasPage: true, nextPageLinkIndex }
     : { hasPage: false, nextPageLinkIndex };
