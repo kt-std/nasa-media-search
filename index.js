@@ -6,6 +6,7 @@ import {
   RESPONSE_DATA_FILES,
 } from './data.js';
 import {
+  hasFilteringParameters,
   requestMedia,
   removeClass,
   isFilterSelected,
@@ -29,7 +30,9 @@ window.data = {
   performFiltering: false,
   sortingOption: false,
   totalHits: null,
-  responseData: RESPONSE_DATA_FILES,
+  allRequestsMade: false,
+  lastPage: false,
+  responseData: [],
 };
 
 window.renderApp = function () {
@@ -51,7 +54,6 @@ window.searchByTerm = e => {
   e.preventDefault();
   resetState(window.data);
   requestMedia(window.data);
-  prepareReponseDataForRendering(window.data);
 };
 
 window.renderApp();
@@ -66,9 +68,7 @@ function SearchLayout(searchPosition) {
     searchPosition === 'top' ? `${styles.search__form_top}` : `${styles.search__form_middle}`
   }">
   ${searchPosition === 'top' ? Logo() : ``}
-  <form onsubmit="window.searchByTerm(event); window.renderApp()" id="searchForm" class="${
-    styles.form
-  }">    
+  <form onsubmit="window.searchByTerm(event);" id="searchForm" class="${styles.form}">    
     <div class="${styles.search__box}">    
       ${MediaTypeSwitcher(window.data)}
       ${SearchInput(window.data)}
@@ -146,15 +146,18 @@ function Filters() {
 function FiltersByCategories(filtersContainer) {
   return Object.keys(filtersContainer)
     .map(filterName => {
-      return `
-      <h3 class="${styles.filter__heading}">${FILTERS_TEXT[filterName]}</h3>
-      <div class="${styles.filter__item_wrapper}">
-        ${Object.keys(filtersContainer[filterName])
-          .map(filterContent => {
-            return Filter(filterContent, filtersContainer[filterName][filterContent], filterName);
-          })
-          .join('')}
-      </div>`;
+      if (hasFilteringParameters(filtersContainer[filterName])) {
+        return `
+        <h3 class="${styles.filter__heading}">${FILTERS_TEXT[filterName]}</h3>
+        <div class="${styles.filter__item_wrapper}">
+          ${Object.keys(filtersContainer[filterName])
+            .map(filterContent => {
+              return Filter(filterContent, filtersContainer[filterName][filterContent], filterName);
+            })
+            .join('')}
+        </div>`;
+      }
+      return '';
     })
     .join('');
 }

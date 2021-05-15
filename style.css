@@ -358,9 +358,3 @@ body.no_image__background {
   border-radius: 0 20px 20px 0;
   font-size: small;
 }
-
-@media all and(max-width: 720px) {
-  .search__input {
-    min-width: 300px;
-  }
-}
