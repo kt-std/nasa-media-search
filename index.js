@@ -29,7 +29,9 @@ window.data = {
   performFiltering: false,
   sortingOption: false,
   totalHits: null,
-  responseData: RESPONSE_DATA_FILES,
+  allRequestsMade: false,
+  lastPage: false,
+  responseData: [],
 };
 
 window.renderApp = function () {
@@ -51,7 +53,6 @@ window.searchByTerm = e => {
   e.preventDefault();
   resetState(window.data);
   requestMedia(window.data);
-  prepareReponseDataForRendering(window.data);
 };
 
 window.renderApp();
@@ -66,9 +67,7 @@ function SearchLayout(searchPosition) {
     searchPosition === 'top' ? `${styles.search__form_top}` : `${styles.search__form_middle}`
   }">
   ${searchPosition === 'top' ? Logo() : ``}
-  <form onsubmit="window.searchByTerm(event); window.renderApp()" id="searchForm" class="${
-    styles.form
-  }">    
+  <form onsubmit="window.searchByTerm(event);" id="searchForm" class="${styles.form}">    
     <div class="${styles.search__box}">    
       ${MediaTypeSwitcher(window.data)}
       ${SearchInput(window.data)}

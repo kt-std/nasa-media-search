@@ -43,14 +43,12 @@ export function resetState(storage) {
   storage.performFiltering = false;
   storage.filtersSelected = false;
   storage.filters = {};
+  storage.allRequestsMade = false;
 }
 
-export function prepareReponseDataForRendering(storage) {
+export async function prepareReponseDataForRendering(storage) {
   storage.flattenedData = getResponseData(storage);
-  getMetadataForDataItem(storage.flattenedData, storage.responseData);
-  getFiltersDataFromMetadata(storage.flattenedData, storage.mediaTypes, storage.responseData);
-  getFiltersFromLists(storage.flattenedData, storage.mediaTypes, storage.filters);
-  storage.totalHits = storage.flattenedData.length;
+  await getMetadataForDataItem(storage.flattenedData, storage);
 }
 
 export function removeClass(backgroundClassName, element) {
@@ -61,8 +59,8 @@ function addClass(backgroundClassName, element) {
   element.classList.add(backgroundClassName);
 }
 
-function getIndexByString(str, data) {
-  return data.filter(dataItem => dataItem.includes(str));
+function getItemByStringPattern(str, data) {
+  return data[data.findIndex(dataItem => dataItem.includes(str))];
 }
 
 function keywordIsASingleWord(keyword) {
@@ -70,25 +68,14 @@ function keywordIsASingleWord(keyword) {
 }
 
 function getResponseData(storage) {
-  return flat(
-    storage.mediaTypes.map(mediaType => {
-      const respondData = storage.responseData[mediaType];
-      return getConciseContentFromRespond(respondData.content);
-    }),
-  );
+  return getConciseContentFromRespond(storage.responseData);
 }
 
 function flat(array) {
   return array.reduce((acc, current) => acc.concat(current), []);
 }
 
-function getConciseContentFromRespond(respondBody) {
-  const {
-    collection: {
-      items,
-      metadata: { total_hits },
-    },
-  } = respondBody;
+function getConciseContentFromRespond(items) {
   return items.map(item => {
     const { data, href, links: [{ href: previewImage }] = [{ href: null }] } = item;
     const { keywords, date_created, center, media_type, title, secondary_creator = null } = data[0];
@@ -110,7 +97,7 @@ function getSeconds(date) {
 }
 
 function getOnlySingleWordKeyword(keywords) {
-  return keywords.filter(keyword => keywordIsASingleWord(keyword));
+  return keywords ? keywords.filter(keyword => keywordIsASingleWord(keyword)) : 'unknown';
 }
 
 function getCreatorsList(creator) {
@@ -125,11 +112,44 @@ function splitStringWithDifferentSeparator(stringToSplit) {
   }
 }
 
-function getMetadataForDataItem(data, responseData) {
-  data.forEach(dataItem => {
-    const collectionData = responseData[dataItem.mediaType].collection,
-      [metadataIndex] = getIndexByString('metadata.json', collectionData);
-    dataItem.metadata = metadataIndex;
+function getMetadataForDataItem(data, storage) {
+  const requests = data.map(dataItem => fetch(dataItem.href));
+  Promise.all(requests)
+    .then(responses => Promise.all(responses.map(response => response.json())))
+    .then(responsesData =>
+      Promise.all(
+        responsesData.map((response, i) => {
+          data[i].metadata = getItemByStringPattern('metadata.json', response);
+          //console.log(data[i].metadata);
+          return getMetadataJSONPromise(data[i]);
+        }),
+      ),
+    )
+    .then(metadataPromises =>
+      Promise.all(
+        metadataPromises.map((metadata, i) => {
+          // console.log(metadata);
+          getFiltersDataFromMetadata(metadata, data[i]);
+        }),
+      ),
+    )
+    .then(_ => {
+      changeStateToRequestMade(storage);
+      getFiltersFromLists(storage.flattenedData, storage.mediaTypes, storage.filters);
+      storage.totalHits = storage.flattenedData.length;
+      window.renderApp();
+    });
+}
+
+async function getMetadataJSONPromise(dataItem) {
+  return await (await fetch(dataItem.metadata)).json();
+}
+
+function getFiltersDataFromMetadata(responseBody, dataItem) {
+  const mediaMetadata = responseBody,
+    mediaKeysNeeded = MEDATADA_KEYS_BY_MEDIA_TYPE[dataItem.mediaType];
+  Object.keys(mediaKeysNeeded).forEach(key => {
+    transformKeyValueToNumber(key, dataItem, mediaMetadata[mediaKeysNeeded[key]]);
   });
 }
 
@@ -166,43 +186,33 @@ function getFiltersFromLists(data, mediaTypes, filtersContainer) {
   });
 }
 
-function getFiltersDataFromMetadata(data, mediaTypes, responseData) {
-  data.forEach(dataItem => {
-    mediaTypes.forEach(mediaType => {
-      const mediaMetadata = responseData[mediaType].metadata,
-        mediaKeysNeeded = MEDATADA_KEYS_BY_MEDIA_TYPE[mediaType];
-      for (let key of Object.keys(mediaKeysNeeded)) {
-        if (dataItem.mediaType === mediaType) {
-          transformKeyValueToNumber(key, dataItem, mediaMetadata[mediaKeysNeeded[key]]);
-        }
-      }
-    });
-  });
-}
-
 function transformKeyValueToNumber(key, dataItem, metadataValue) {
-  switch (key) {
-    case 'album':
-      dataItem[key] = getImageAlbum(metadataValue);
-      break;
-    case 'duration':
-      dataItem[key] = getDurationValueFromString(metadataValue);
-      break;
-    case 'size':
-      dataItem[key] = getSizeInKBFromString(metadataValue);
-      dataItem[`${key}Value`] = dataItem[key].value;
-      break;
-    case 'bitrate':
-      dataItem[`${key}Value`] = getNumberFromString(metadataValue);
-      dataItem[key] = metadataValue;
-      break;
-    case 'resolution':
-      dataItem[key] = getResolutionFromString(metadataValue);
-      dataItem[`${key}Origin`] = metadataValue;
-      dataItem[`${key}Value`] = dataItem[key].height * dataItem[key].width;
-      break;
-    default:
-      dataItem[key] = metadataValue;
+  if (metadataValue) {
+    switch (key) {
+      case 'album':
+        dataItem[key] = getImageAlbum(metadataValue);
+        break;
+      case 'duration':
+        dataItem[key] = getDurationValueFromString(metadataValue);
+        break;
+      case 'size':
+        dataItem[key] = getSizeInKBFromString(metadataValue);
+        dataItem[`${key}Value`] = dataItem[key].value;
+        break;
+      case 'bitrate':
+        dataItem[`${key}Value`] = getNumberFromString(metadataValue);
+        dataItem[key] = metadataValue;
+        break;
+      case 'resolution':
+        dataItem[key] = getResolutionFromString(metadataValue);
+        dataItem[`${key}Origin`] = metadataValue;
+        dataItem[`${key}Value`] = dataItem[key].height * dataItem[key].width;
+        break;
+      default:
+        dataItem[key] = metadataValue;
+    }
+  } else {
+    dataItem[key] = metadataValue;
   }
 }
 
@@ -249,16 +259,40 @@ function getNumberFromString(value) {
   return value ? parseInt(value) : undefined;
 }
 
-export function requestMedia(storage) {
-  changeStateToRequestMade(storage);
+export async function requestMedia(storage) {
   const searchInputValue = document.getElementById('searchInput').value,
-    mediaTypes = getMediaTypes(),
-    requestURL = createRequestURL(searchInputValue, mediaTypes);
+    mediaTypes = getMediaTypes();
+  let requestURL = createRequestURL(searchInputValue, mediaTypes);
   storage.mediaTypes = setSelectedMediaTypes(mediaTypes);
   storage.searchValue = searchInputValue;
-  return 'Data requested';
+  storage.responseData = [];
+
+  while (!storage.allRequestsMade) {
+    await fetch(requestURL)
+      .then(data => data.json())
+      .then(data => {
+        if (data.collection.links) {
+          const { nextPageLinkIndex, hasPage } = hasNextPage(data.collection.links);
+          if (!hasPage) {
+            storage.allRequestsMade = true;
+          } else {
+            requestURL = data.collection.links[nextPageLinkIndex].href;
+          }
+        } else {
+          storage.allRequestsMade = true;
+        }
+        storage.responseData = storage.responseData.concat(data.collection.items);
+      });
+  }
+  await prepareReponseDataForRendering(window.data);
 }
 
+function hasNextPage(linksList) {
+  const nextPageLinkIndex = linksList.findIndex(linkItem => linkItem.rel === 'next');
+  return nextPageLinkIndex !== -1
+    ? { hasPage: true, nextPageLinkIndex }
+    : { hasPage: false, nextPageLinkIndex };
+}
 function changeStateToRequestMade(storage) {
   storage.requestMade = true;
   addClass(`${styles.no_image__background}`, document.body);
