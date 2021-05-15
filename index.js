@@ -6,6 +6,7 @@ import {
   RESPONSE_DATA_FILES,
 } from './data.js';
 import {
+  hasFilteringParameters,
   requestMedia,
   removeClass,
   isFilterSelected,
@@ -145,15 +146,18 @@ function Filters() {
 function FiltersByCategories(filtersContainer) {
   return Object.keys(filtersContainer)
     .map(filterName => {
-      return `
-      <h3 class="${styles.filter__heading}">${FILTERS_TEXT[filterName]}</h3>
-      <div class="${styles.filter__item_wrapper}">
-        ${Object.keys(filtersContainer[filterName])
-          .map(filterContent => {
-            return Filter(filterContent, filtersContainer[filterName][filterContent], filterName);
-          })
-          .join('')}
-      </div>`;
+      if (hasFilteringParameters(filtersContainer[filterName])) {
+        return `
+        <h3 class="${styles.filter__heading}">${FILTERS_TEXT[filterName]}</h3>
+        <div class="${styles.filter__item_wrapper}">
+          ${Object.keys(filtersContainer[filterName])
+            .map(filterContent => {
+              return Filter(filterContent, filtersContainer[filterName][filterContent], filterName);
+            })
+            .join('')}
+        </div>`;
+      }
+      return '';
     })
     .join('');
 }

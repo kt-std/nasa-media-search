@@ -8,6 +8,12 @@ import {
 
 import styles from './style.css';
 
+//todo handle errors
+
+export function hasFilteringParameters(filter) {
+  return Object.keys(filter).length;
+}
+
 function getParametersFromNodeList(parameter, nodeList) {
   return Array.from(nodeList).map(item => item[parameter]);
 }
