@@ -272,6 +272,8 @@ export async function requestMedia(storage) {
   storage.searchValue = searchInputValue;
   storage.responseData = [];
   let pagesCounter = 0;
+  window.data.isDataLoading = true;
+  window.renderApp();
   while (!storage.allRequestsMade) {
     //todo add loading state
     await fetch(requestURL)

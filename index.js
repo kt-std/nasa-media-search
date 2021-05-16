@@ -32,6 +32,7 @@ window.data = {
   totalHits: null,
   allRequestsMade: false,
   lastPage: false,
+  isDataLoading: false,
   responseData: [],
 };
 
@@ -59,7 +60,13 @@ window.searchByTerm = e => {
 window.renderApp();
 
 function App() {
-  return `${window.data.requestMade ? ResponseLayout('top') : SearchLayout('middle')}`;
+  return `${
+    window.data.requestMade
+      ? ResponseLayout('top')
+      : window.data.isDataLoading
+      ? '<p><loading.../p>'
+      : SearchLayout('middle')
+  }`;
 }
 
 function SearchLayout(searchPosition) {
