@@ -45,15 +45,18 @@ export const sortByDirection = {
 export function resetState(storage) {
   storage.totalHits = null;
   storage.sortingSet = false;
+  storage.requestMade = false;
   storage.selectedFiltersList = [];
   storage.performFiltering = false;
   storage.filtersSelected = false;
   storage.filters = {};
+  storage.noResults = false;
   storage.allRequestsMade = false;
 }
 
 export async function prepareReponseDataForRendering(storage) {
   storage.flattenedData = getResponseData(storage);
+  if (!storage.flattenedData.length) storage.noResults = true;
   await getMetadataForDataItem(storage.flattenedData, storage);
 }
 
@@ -139,6 +142,8 @@ function getMetadataForDataItem(data, storage) {
       ),
     )
     .then(_ => {
+      window.data.isDataLoading = false;
+      window.renderApp();
       changeStateToRequestMade(storage);
       getFiltersFromLists(storage.flattenedData, storage.mediaTypes, storage.filters);
       storage.totalHits = storage.flattenedData.length;
@@ -272,7 +277,6 @@ export async function requestMedia(storage) {
   storage.searchValue = searchInputValue;
   storage.responseData = [];
   let pagesCounter = 0;
-  window.data.isDataLoading = true;
   window.renderApp();
   while (!storage.allRequestsMade) {
     //todo add loading state
@@ -281,7 +285,7 @@ export async function requestMedia(storage) {
       .then(data => {
         if (data.collection.links) {
           const { nextPageLinkIndex, hasPage } = hasNextPage(data.collection.links);
-          if (pagesCounter === 3 || !hasPage) {
+          if (pagesCounter === 2 || !hasPage) {
             storage.allRequestsMade = true;
           } else {
             requestURL = data.collection.links[nextPageLinkIndex].href;
@@ -292,7 +296,8 @@ export async function requestMedia(storage) {
           storage.allRequestsMade = true;
         }
         storage.responseData = storage.responseData.concat(data.collection.items);
-      });
+      })
+      .catch(err => alert(err));
   }
   await prepareReponseDataForRendering(window.data);
 }

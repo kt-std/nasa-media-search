@@ -33,6 +33,8 @@ window.data = {
   allRequestsMade: false,
   lastPage: false,
   isDataLoading: false,
+  noResults: false,
+  renderingData: false,
   responseData: [],
 };
 
@@ -54,6 +56,7 @@ window.openHomePage = e => {
 window.searchByTerm = e => {
   e.preventDefault();
   resetState(window.data);
+  window.data.isDataLoading = true;
   requestMedia(window.data);
 };
 
@@ -64,9 +67,13 @@ function App() {
     window.data.requestMade
       ? ResponseLayout('top')
       : window.data.isDataLoading
-      ? '<p><loading.../p>'
+      ? Loader('Data loading...')
       : SearchLayout('middle')
   }`;
+}
+
+function Loader(str) {
+  return `<div class="${styles.loader}">${str}</div>`;
 }
 
 function SearchLayout(searchPosition) {
@@ -144,7 +151,9 @@ function ResponseLayout(searchPosition) {
 }
 
 function Filters() {
-  return `
+  return window.data.noResults
+    ? ''
+    : `
   <form id="filters" class="${styles.filters__wrapper}">
     ${FiltersByCategories(window.data.filters)}
   </form>`;
@@ -200,7 +209,8 @@ window.selectFilter = function (storage, filter) {
 };
 
 function ResponseContent() {
-  return `
+  return !window.data.noResults
+    ? `
   <div class="${styles.cards__wrapper}">
     <div class="${styles.sort_hits_wrapper}">
       <h3 class="${styles.total_hits}">
@@ -211,7 +221,15 @@ function ResponseContent() {
     ${SelectedFilters(window.data)}
     ${MediaContentCards(window.data)}
   </div>
-  `;
+  `
+    : NoResults();
+}
+
+function NoResults() {
+  return `
+  <div class="${styles.noResultsWrap}">
+    <h2 class="${styles.no_results}"">No results found :(</h2>
+  </div>`;
 }
 
 function SortSelect() {
