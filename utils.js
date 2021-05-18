@@ -114,6 +114,7 @@ function getCreatorsList(creator) {
 }
 
 function splitStringWithDifferentSeparator(stringToSplit) {
+  stringToSplit = stringToSplit.replace(/[<>]||(\/>)/gm, '');
   if (stringToSplit.indexOf('/') === -1) {
     return stringToSplit.split(', ');
   } else {
