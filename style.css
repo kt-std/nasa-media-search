@@ -192,9 +192,6 @@ body.no_image__background {
   padding: var(--padding);
   box-sizing: border-box;
   height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 .logo {
   width: 60px;
@@ -284,11 +281,18 @@ body.no_image__background {
   margin-bottom: 20px;
   text-transform: uppercase;
 }
+.overflow {
+  text-overflow: ellipsis;
+  width: 120px;
+  overflow: scroll;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  white-space: nowrap;
+}
 .text {
   text-overflow: ellipsis;
   overflow: scroll;
   margin: 0 5px 0 10px;
-  text-align: left;
   width: auto;
   max-width: 120px;
   -ms-overflow-style: none;

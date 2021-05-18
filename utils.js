@@ -228,8 +228,8 @@ function transformKeyValueToNumber(key, dataItem, metadataValue) {
 
 function getDurationValueFromString(duration) {
   if (duration && duration !== null) {
-    const time = duration.match(/\d{1,}:\d{2}:\d{2}/g)[0];
-    return getSecondsFromDurationValue(time);
+    const time = duration.match(/\d{1,}:\d{2}:\d{2}/g);
+    return time !== null ? getSecondsFromDurationValue(time[0]) : undefined;
   }
   return undefined;
 }

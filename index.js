@@ -21,7 +21,7 @@ import styles from './style.css';
 window.data = {
   requestMade: false,
   searchValue: null,
-  mediaTypes: null,
+  mediaTypes: [],
   filters: {},
   selectedFiltersList: [],
   sortingSet: false,
@@ -48,7 +48,7 @@ window.openHomePage = e => {
   e.preventDefault();
   window.data.requestMade = false;
   window.data.searchValue = null;
-  window.data.mediaTypes = null;
+  window.data.mediaTypes = [];
   resetState(window.data);
   removeClass(`${styles.no_image__background}`, document.body);
 };
@@ -101,7 +101,9 @@ function Logo() {
 
 function MediaTypeSwitcher(storage) {
   return `
-  <label for="mediaSwitcherButton" class="${styles.media__switcher_label}">All media types</label>
+  <label for="mediaSwitcherButton" class="${styles.media__switcher_label} ${styles.overflow}">
+  ${storage.mediaTypes.length ? storage.mediaTypes.join(', ') : 'Media type'}
+  </label>
   <input type="checkbox" class="${styles.media__switcher_button}" id="mediaSwitcherButton">
   <div class="${styles.media__switcher_wrapper}">
     ${['image', 'audio', 'video']
@@ -111,11 +113,11 @@ function MediaTypeSwitcher(storage) {
             <input type="checkbox" 
                          class="${styles.mediaType}"
                          name="mediaType" 
+                         onchange="updateMediaTypes(window.data, this);window.renderApp()"
                          id="${mediaType}" 
                          value="${mediaType}"
                          ${
-                           storage.mediaTypes !== null &&
-                           storage.mediaTypes.indexOf(mediaType) !== -1
+                           storage.mediaTypes.length && storage.mediaTypes.indexOf(mediaType) !== -1
                              ? `checked`
                              : ``
                          }>
@@ -127,16 +129,28 @@ function MediaTypeSwitcher(storage) {
   </div>`;
 }
 
+window.updateMediaTypes = (storage, input) => {
+  const inputIndex = storage.mediaTypes.indexOf(input.value);
+  if (inputIndex === -1) {
+    storage.mediaTypes.push(input.value);
+  } else {
+    storage.mediaTypes.splice(inputIndex, 1);
+  }
+};
+
 function SearchInput(storage) {
   return `<input type="text" 
                  id="searchInput" 
                  placeholder='Search for ... (e.g. "Sun")'
                  class="${styles.search__input}"
+                 onchange="window.data.searchValue = this.value;window.renderApp()"
                  value="${storage.searchValue !== null ? storage.searchValue : ``}">`;
 }
 
 function SearchButton() {
-  return `<button class="${styles.search__button}">search</button>`;
+  return `<button class="${styles.search__button}" ${
+    !window.data.mediaTypes.length || !window.data.searchValue ? `disabled="disabled"` : ''
+  }>search</button>`;
 }
 
 function ResponseLayout(searchPosition) {
