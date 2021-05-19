@@ -57,7 +57,30 @@ export function resetState(storage) {
 export async function prepareReponseDataForRendering(storage) {
   storage.flattenedData = getResponseData(storage);
   if (!storage.flattenedData.length) storage.noResults = true;
-  await getMetadataForDataItem(storage.flattenedData, storage);
+  const metadata = await getMetadataForDataItem(storage.flattenedData, storage);
+  const metadataFromLinks = await getFiltersAndUpdate(metadata);
+  getFiltersAndUpdate(metadataFromLinks);
+}
+
+function getFiltersAndUpdate(metadata) {
+  metadata.then(_ => {
+    window.data.isDataLoading = false;
+    window.renderApp();
+    changeStateToRequestMade(storage);
+    getFiltersFromLists(storage.flattenedData, storage.mediaTypes, storage.filters);
+    storage.totalHits = storage.flattenedData.length;
+    window.renderApp();
+  });
+}
+
+function getFiltersFromMetadata(metadata) {
+  metadata.then(metadataPromises => {
+    return Promise.all(
+      metadataPromises.map((metadata, i) => {
+        getFiltersDataFromMetadata(metadata, data[i]);
+      }),
+    );
+  });
 }
 
 export function removeClass(backgroundClassName, element) {
@@ -126,29 +149,14 @@ function getMetadataForDataItem(data, storage) {
   const requests = data.map(dataItem => fetch(dataItem.href));
   Promise.all(requests)
     .then(responses => Promise.all(responses.map(response => response.json())))
-    .then(responsesData =>
-      Promise.all(
+    .then(responsesData => {
+      return Promise.all(
         responsesData.map((response, i) => {
           const metadataLink = getItemByStringPattern('metadata.json', response);
           data[i].metadata = metadataLink.replace(/(http)/gm, 'https');
           return getMetadataJSONPromise(data[i]);
         }),
-      ),
-    )
-    .then(metadataPromises =>
-      Promise.all(
-        metadataPromises.map((metadata, i) => {
-          getFiltersDataFromMetadata(metadata, data[i]);
-        }),
-      ),
-    )
-    .then(_ => {
-      window.data.isDataLoading = false;
-      window.renderApp();
-      changeStateToRequestMade(storage);
-      getFiltersFromLists(storage.flattenedData, storage.mediaTypes, storage.filters);
-      storage.totalHits = storage.flattenedData.length;
-      window.renderApp();
+      );
     });
 }
 
