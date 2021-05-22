@@ -58,7 +58,7 @@ export async function prepareReponseDataForRendering(storage) {
   storage.flattenedData = getResponseData(storage);
   if (!storage.flattenedData.length) storage.noResults = true;
   const metadata = await getMetadataForDataItem(storage.flattenedData, storage);
-  const metadataFromLinks = await getFiltersAndUpdate(metadata);
+  const metadataFromLinks = await getFiltersFromMetadata(metadata);
   getFiltersAndUpdate(metadataFromLinks);
 }
 
@@ -74,7 +74,7 @@ function getFiltersAndUpdate(metadata) {
 }
 
 function getFiltersFromMetadata(metadata) {
-  metadata.then(metadataPromises => {
+  return metadata.then(metadataPromises => {
     return Promise.all(
       metadataPromises.map((metadata, i) => {
         getFiltersDataFromMetadata(metadata, data[i]);
@@ -145,11 +145,15 @@ function splitStringWithDifferentSeparator(stringToSplit) {
   }
 }
 
-function getMetadataForDataItem(data, storage) {
+async function getMetadataForDataItem(data, storage) {
   const requests = data.map(dataItem => fetch(dataItem.href));
-  Promise.all(requests)
-    .then(responses => Promise.all(responses.map(response => response.json())))
-    .then(responsesData => {
+  return Promise.all(requests).then(responses =>
+    Promise.all(responses.map(response => response.json())),
+  );
+}
+
+/*.then(responsesData => 
+    {
       return Promise.all(
         responsesData.map((response, i) => {
           const metadataLink = getItemByStringPattern('metadata.json', response);
@@ -157,8 +161,7 @@ function getMetadataForDataItem(data, storage) {
           return getMetadataJSONPromise(data[i]);
         }),
       );
-    });
-}
+    });*/
 
 async function getMetadataJSONPromise(dataItem) {
   return await (await fetch(dataItem.metadata)).json();
