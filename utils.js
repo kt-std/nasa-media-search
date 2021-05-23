@@ -57,20 +57,43 @@ export function resetState(storage) {
 export async function prepareReponseDataForRendering(storage) {
   storage.flattenedData = getResponseData(storage);
   if (!storage.flattenedData.length) storage.noResults = true;
-  const metadata = await getMetadataForDataItem(storage.flattenedData, storage);
-  const metadataFromLinks = await getFiltersFromMetadata(metadata);
-  getFiltersAndUpdate(metadataFromLinks);
+  const collectionData = await getCollectionData(storage.flattenedData, storage),
+    metadataFromLinks = await getMetadata(storage.flattenedData, collectionData);
+  await getFiltersAndUpdate(storage, metadataFromLinks);
 }
 
-function getFiltersAndUpdate(metadata) {
-  metadata.then(_ => {
-    window.data.isDataLoading = false;
-    window.renderApp();
-    changeStateToRequestMade(storage);
-    getFiltersFromLists(storage.flattenedData, storage.mediaTypes, storage.filters);
-    storage.totalHits = storage.flattenedData.length;
-    window.renderApp();
+function getCollectionData(data, storage) {
+  const requests = data.map(dataItem => fetch(dataItem.href));
+  return Promise.all(requests).then(responses =>
+    Promise.all(responses.map(response => response.json())),
+  );
+}
+
+function getMetadataLinksFromCollectionList(data, collectionData) {
+  return collectionData.map((collectionDataItem, i) => {
+    const metadataLink = getItemByStringPattern('metadata.json', collectionDataItem);
+    data[i].metadata = replaceProtocolExtension(metadataLink);
+    return fetch(data[i].metadata);
   });
+}
+
+function getMetadata(data, collectionData) {
+  const metadataFetchedLinks = getMetadataLinksFromCollectionList(data, collectionData);
+  return Promise.all(metadataFetchedLinks).then(metadata =>
+    Promise.all(metadata.map(metadataItem => metadataItem.json())),
+  );
+}
+
+function replaceProtocolExtension(link) {
+  return link.replace(/(http)/gm, 'https');
+}
+
+function getFiltersAndUpdate(storage, metadata) {
+  window.data.isDataLoading = false;
+  changeStateToRequestMade(storage);
+  getFiltersFromLists(storage.flattenedData, storage.mediaTypes, storage.filters);
+  storage.totalHits = storage.flattenedData.length;
+  window.renderApp();
 }
 
 function getFiltersFromMetadata(metadata) {
@@ -143,28 +166,6 @@ function splitStringWithDifferentSeparator(stringToSplit) {
   } else {
     return stringToSplit.split('/');
   }
-}
-
-async function getMetadataForDataItem(data, storage) {
-  const requests = data.map(dataItem => fetch(dataItem.href));
-  return Promise.all(requests).then(responses =>
-    Promise.all(responses.map(response => response.json())),
-  );
-}
-
-/*.then(responsesData => 
-    {
-      return Promise.all(
-        responsesData.map((response, i) => {
-          const metadataLink = getItemByStringPattern('metadata.json', response);
-          data[i].metadata = metadataLink.replace(/(http)/gm, 'https');
-          return getMetadataJSONPromise(data[i]);
-        }),
-      );
-    });*/
-
-async function getMetadataJSONPromise(dataItem) {
-  return await (await fetch(dataItem.metadata)).json();
 }
 
 function getFiltersDataFromMetadata(responseBody, dataItem) {
