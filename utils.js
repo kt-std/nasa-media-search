@@ -55,18 +55,21 @@ export function resetState(storage) {
 }
 
 export async function prepareReponseDataForRendering(storage) {
-  storage.flattenedData = getResponseData(storage);
-  if (!storage.flattenedData.length) storage.noResults = true;
-  const collectionData = await getCollectionData(storage.flattenedData, storage),
-    metadataFromLinks = await getMetadata(storage.flattenedData, collectionData);
-  await getFiltersAndUpdate(storage, metadataFromLinks);
+  if (!storage.isError) {
+    storage.flattenedData = getResponseData(storage);
+    if (!storage.flattenedData.length) storage.noResults = true;
+    const collectionData = await getCollectionData(storage.flattenedData, storage),
+      metadataFromLinks = await getMetadata(storage.flattenedData, collectionData);
+    await getFiltersAndUpdate(storage, metadataFromLinks);
+  }
+  window.renderApp();
 }
 
 function getCollectionData(data, storage) {
   const requests = data.map(dataItem => fetch(dataItem.href));
-  return Promise.all(requests).then(responses =>
-    Promise.all(responses.map(response => response.json())),
-  );
+  return Promise.all(requests)
+    .then(responses => Promise.all(responses.map(response => response.json())))
+    .catch(err => setError(err, storage));
 }
 
 function getMetadataLinksFromCollectionList(data, collectionData) {
@@ -79,9 +82,11 @@ function getMetadataLinksFromCollectionList(data, collectionData) {
 
 function getMetadata(data, collectionData) {
   const metadataFetchedLinks = getMetadataLinksFromCollectionList(data, collectionData);
-  return Promise.all(metadataFetchedLinks).then(metadata =>
-    Promise.all(metadata.map(metadataItem => metadataItem.json())),
-  );
+  return Promise.all(metadataFetchedLinks)
+    .then(metadata => Promise.all(metadata.map(metadataItem => metadataItem.json())))
+    .catch(err => {
+      setError(err, storage);
+    });
 }
 
 function replaceProtocolExtension(link) {
@@ -93,17 +98,20 @@ function getFiltersAndUpdate(storage, metadata) {
   changeStateToRequestMade(storage);
   getFiltersFromLists(storage.flattenedData, storage.mediaTypes, storage.filters);
   storage.totalHits = storage.flattenedData.length;
-  window.renderApp();
 }
 
 function getFiltersFromMetadata(metadata) {
-  return metadata.then(metadataPromises => {
-    return Promise.all(
-      metadataPromises.map((metadata, i) => {
-        getFiltersDataFromMetadata(metadata, data[i]);
-      }),
-    );
-  });
+  return metadata
+    .then(metadataPromises => {
+      return Promise.all(
+        metadataPromises.map((metadata, i) => {
+          getFiltersDataFromMetadata(metadata, data[i]);
+        }),
+      );
+    })
+    .catch(err => {
+      setError(err, storage);
+    });
 }
 
 export function removeClass(backgroundClassName, element) {
@@ -291,6 +299,7 @@ export async function requestMedia(storage) {
   storage.responseData = [];
   let pagesCounter = 0;
   window.renderApp();
+  let k = 0;
   while (!storage.allRequestsMade) {
     //todo add loading state
     await fetch(requestURL)
@@ -301,8 +310,7 @@ export async function requestMedia(storage) {
           if (pagesCounter === 2 || !hasPage) {
             storage.allRequestsMade = true;
           } else {
-            requestURL = data.collection.links[nextPageLinkIndex].href;
-            requestURL = requestURL.replace(/(http)/gm, 'https');
+            requestURL = replaceProtocolExtension(data.collection.links[nextPageLinkIndex].href);
             pagesCounter++;
           }
         } else {
@@ -310,9 +318,19 @@ export async function requestMedia(storage) {
         }
         storage.responseData = storage.responseData.concat(data.collection.items);
       })
-      .catch(err => alert(err));
+      .catch(err => {
+        setError(err, storage);
+      });
   }
   await prepareReponseDataForRendering(window.data);
+}
+
+function setError(errMessage, storage) {
+  storage.isDataLoading = false;
+  storage.allRequestsMade = true;
+  storage.isError = true;
+  storage.errorMessage = `Ooops!..${errMessage}.<br/>Try to reload the page`;
+  window.renderApp();
 }
 
 function hasNextPage(linksList) {

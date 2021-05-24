@@ -36,6 +36,45 @@ body.no_image__background {
   top: 0;
   left: 0;
 }
+.loader:after {
+  content: 'Loading';
+  font-size: 20px;
+  position: relative;
+  color: #1565c0;
+  min-width: 200px;
+  text-align: center;
+  text-transform: uppercase;
+  animation: loop 2.5s infinite alternate-reverse;
+}
+@keyframes loop {
+  0% {
+    top: 0%;
+  }
+  12% {
+    content: 'L';
+  }
+  24% {
+    content: 'Lo';
+  }
+  36% {
+    content: 'Loa';
+  }
+  48% {
+    content: 'Load';
+  }
+  60% {
+    content: 'Loadi';
+  }
+  72% {
+    content: 'Loadin';
+  }
+  84% {
+    content: 'Loading';
+  }
+  100% {
+    top: -5%;
+  }
+}
 .noResultsWrap {
   display: flex;
   align-items: center;

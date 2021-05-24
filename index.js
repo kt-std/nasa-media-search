@@ -36,6 +36,8 @@ window.data = {
   noResults: false,
   renderingData: false,
   responseData: [],
+  isError: false,
+  errorMessage: '',
 };
 
 window.renderApp = function () {
@@ -67,13 +69,15 @@ function App() {
     window.data.requestMade
       ? ResponseLayout('top')
       : window.data.isDataLoading
-      ? Loader('Data loading...')
+      ? Loader('Data loading')
+      : window.data.isError
+      ? Loader(window.data.errorMessage)
       : SearchLayout('middle')
   }`;
 }
 
 function Loader(str) {
-  return `<div class="${styles.loader}">${str}</div>`;
+  return `<div class="${styles.loader}"data-text="${str}"></div>`;
 }
 
 function SearchLayout(searchPosition) {
