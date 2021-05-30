@@ -59,7 +59,7 @@ export async function prepareReponseDataForRendering(storage) {
     storage.flattenedData = getResponseData(storage);
     if (!storage.flattenedData.length) storage.noResults = true;
     const collectionData = await getCollectionData(storage.flattenedData, storage),
-      metadataFromLinks = await getMetadata(storage.flattenedData, collectionData);
+      metadataFromLinks = await getMetadata(storage.flattenedData, collectionData, storage);
     await getFiltersAndUpdate(storage, metadataFromLinks);
   }
   window.renderApp();
@@ -67,23 +67,29 @@ export async function prepareReponseDataForRendering(storage) {
 
 function getCollectionData(data, storage) {
   const requests = data.map(dataItem => fetch(dataItem.href));
-  return Promise.all(requests)
-    .then(responses => Promise.all(responses.map(response => response.json())))
-    .catch(err => setError(err, storage));
+  return getAllPromisesData(requests, storage);
 }
 
 function getMetadataLinksFromCollectionList(data, collectionData) {
   return collectionData.map((collectionDataItem, i) => {
     const metadataLink = getItemByStringPattern('metadata.json', collectionDataItem);
     data[i].metadata = replaceProtocolExtension(metadataLink);
-    return fetch(data[i].metadata);
+    return fetch(data[i].metadata).catch(err => {
+      setError(err, storage);
+    });
   });
 }
 
-function getMetadata(data, collectionData) {
-  const metadataFetchedLinks = getMetadataLinksFromCollectionList(data, collectionData);
-  return Promise.all(metadataFetchedLinks)
-    .then(metadata => Promise.all(metadata.map(metadataItem => metadataItem.json())))
+function getMetadata(data, collectionData, storage) {
+  const metadataFetchedLinks = getMetadataLinksFromCollectionList(data, collectionData, storage);
+  return getAllPromisesData(metadataFetchedLinks, storage);
+}
+
+function getAllPromisesData(data, storage) {
+  return Promise.all(data)
+    .then(responseData =>
+      Promise.all(responseData.map(responseDataItem => responseDataItem.json())),
+    )
     .catch(err => {
       setError(err, storage);
     });
