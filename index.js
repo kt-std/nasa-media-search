@@ -1,3 +1,4 @@
+import { dataStore } from './src/data/dataStore.js';
 import {
   MEDIA_TYPE_SORTING_OPTIONS,
   SORTING_OPTIONS_TEXT,
@@ -18,32 +19,14 @@ import {
 } from './utils';
 import styles from './style.css';
 
-window.data = {
-  requestMade: false,
-  searchValue: null,
-  mediaTypes: [],
-  filters: {},
-  selectedFiltersList: [],
-  sortingSet: false,
-  filteredData: [],
-  filtersSelected: false,
-  performFiltering: false,
-  sortingOption: false,
-  totalHits: null,
-  allRequestsMade: false,
-  lastPage: false,
-  isDataLoading: false,
-  noResults: false,
-  renderingData: false,
-  responseData: [],
-  isError: false,
-  errorMessage: '',
-};
+window.data = dataStore;
 
 window.renderApp = function () {
   document.getElementById('app-root').innerHTML = `
         ${App()}
     `;
+  if (window.data.focusOnFilter !== null)
+    document.querySelector(`[name="${window.data.focusOnFilter}"]`).focus();
 };
 
 window.openHomePage = e => {
@@ -221,15 +204,17 @@ window.selectFilter = function (storage, filter) {
   storage.filtersSelected = true;
   if (!isFilterSelected(storage.selectedFiltersList, value, categorie)) {
     storage.selectedFiltersList.push({ value, categorie });
+    window.data.focusOnFilter = filter.name;
   } else {
     window.removeFilter(storage, filter);
+    window.data.focusOnFilter = null;
   }
 };
 
 function ResponseContent() {
   return !window.data.noResults
     ? `
-  <div class="${styles.cards__wrapper}">
+  <div class="${styles.cards__wrapper}" id="cardsWrapper">
     <div class="${styles.sort_hits_wrapper}">
       <h3 class="${styles.total_hits}">
         Total hits ${window.data.totalHits} for ${window.data.searchValue}
@@ -348,6 +333,7 @@ window.removeFilter = (storage, filter) => {
   const deleteIndex = storage.selectedFiltersList.findIndex(
     element => element.value === filterName && categorie === element.categorie,
   );
+  window.data.focusOnFilter = null;
   storage.selectedFiltersList.splice(deleteIndex, 1);
   if (!storage.selectedFiltersList.length) {
     storage.performFiltering = false;
@@ -371,6 +357,8 @@ function Card(dataItem) {
         ? `${styles.video}`
         : `${styles.image}`
     }" 
+    id="${dataItem.id}"
+    data-background="${dataItem.previewImage}"
     style="background-image: url(
     ${dataItem.previewImage !== null ? dataItem.previewImage : require('./assets/audio.svg')})" 
     data-title="${dataItem.title}">

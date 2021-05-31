@@ -8,8 +8,6 @@ import {
 
 import styles from './style.css';
 
-//todo handle errors
-
 export function hasFilteringParameters(filter) {
   return Object.keys(filter).length;
 }
@@ -99,25 +97,18 @@ function replaceProtocolExtension(link) {
   return link.replace(/(http)/gm, 'https');
 }
 
-function getFiltersAndUpdate(storage, metadata) {
-  window.data.isDataLoading = false;
+async function getFiltersAndUpdate(storage, metadata) {
+  await getFiltersFromMetadata(metadata, storage.flattenedData);
+  storage.isDataLoading = false;
   changeStateToRequestMade(storage);
   getFiltersFromLists(storage.flattenedData, storage.mediaTypes, storage.filters);
   storage.totalHits = storage.flattenedData.length;
 }
 
-function getFiltersFromMetadata(metadata) {
-  return metadata
-    .then(metadataPromises => {
-      return Promise.all(
-        metadataPromises.map((metadata, i) => {
-          getFiltersDataFromMetadata(metadata, data[i]);
-        }),
-      );
-    })
-    .catch(err => {
-      setError(err, storage);
-    });
+function getFiltersFromMetadata(metadata, data) {
+  return metadata.forEach((metadataItem, i) => {
+    getFiltersDataFromMetadata(metadataItem, data[i]);
+  });
 }
 
 export function removeClass(backgroundClassName, element) {
@@ -147,10 +138,19 @@ function flat(array) {
 function getConciseContentFromRespond(items) {
   return items.map(item => {
     const { data, href, links: [{ href: previewImage }] = [{ href: null }] } = item;
-    const { keywords, date_created, center, media_type, title, secondary_creator = null } = data[0];
+    const {
+      keywords,
+      date_created,
+      center,
+      media_type,
+      title,
+      secondary_creator = null,
+      nasa_id,
+    } = data[0];
     return {
       keywords: getOnlySingleWordKeyword(keywords),
       date: getSeconds(date_created),
+      id: nasa_id,
       title,
       center,
       previewImage: removeSpacesFromLink(previewImage),
@@ -303,11 +303,15 @@ export async function requestMedia(storage) {
   storage.mediaTypes = setSelectedMediaTypes(mediaTypes);
   storage.searchValue = searchInputValue;
   storage.responseData = [];
-  let pagesCounter = 0;
+
   window.renderApp();
-  let k = 0;
+  await getDataPages(storage, requestURL);
+  await prepareReponseDataForRendering(storage);
+}
+
+async function getDataPages(storage, requestURL) {
+  let pagesCounter = 0;
   while (!storage.allRequestsMade) {
-    //todo add loading state
     await fetch(requestURL)
       .then(data => data.json())
       .then(data => {
@@ -328,7 +332,6 @@ export async function requestMedia(storage) {
         setError(err, storage);
       });
   }
-  await prepareReponseDataForRendering(window.data);
 }
 
 function setError(errMessage, storage) {
