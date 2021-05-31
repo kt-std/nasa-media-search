@@ -1,0 +1,6 @@
+.search__button {
+  box-sizing: border-box;
+  padding: var(--padding);
+  border: none;
+  height: 100%;
+}

@@ -1,0 +1,53 @@
+.loader {
+  background-color: var(--light-color);
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  z-index: 100;
+  top: 0;
+  left: 0;
+}
+
+.loader:after {
+  content: 'Loading';
+  font-size: 20px;
+  position: relative;
+  color: #1565c0;
+  min-width: 200px;
+  text-align: center;
+  text-transform: uppercase;
+  animation: loop 2.5s infinite alternate-reverse;
+}
+
+@keyframes loop {
+  0% {
+    top: 0%;
+  }
+  12% {
+    content: 'L';
+  }
+  24% {
+    content: 'Lo';
+  }
+  36% {
+    content: 'Loa';
+  }
+  48% {
+    content: 'Load';
+  }
+  60% {
+    content: 'Loadi';
+  }
+  72% {
+    content: 'Loadin';
+  }
+  84% {
+    content: 'Loading';
+  }
+  100% {
+    top: -5%;
+  }
+}
