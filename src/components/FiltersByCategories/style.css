@@ -1,0 +1,45 @@
+.filters__wrapper {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  padding: 15px 20px;
+  width: 250px;
+  min-width: 250px;
+  background-color: var(--extra-light);
+  border: var(--border);
+}
+
+.filter__label {
+  display: flex;
+  align-items: center;
+  margin: 0 10px 10px 0;
+  position: relative;
+  height: 25px;
+}
+
+.text {
+  text-overflow: ellipsis;
+  overflow: scroll;
+  margin: 0 5px 0 10px;
+  width: auto;
+  max-width: 120px;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  white-space: nowrap;
+}
+
+.filter__counter {
+  font-size: 12px;
+  color: #aaa;
+}
+
+.filter__heading {
+  margin-bottom: 20px;
+  text-transform: uppercase;
+}
+
+.filter__item_wrapper {
+  max-height: 60vh;
+  overflow-y: auto;
+  margin-bottom: 40px;
+}

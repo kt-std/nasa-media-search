@@ -1,0 +1,48 @@
+.filter__button {
+  box-sizing: border-box;
+  padding: 5px 15px;
+  font-size: small;
+  margin: 0 10px 20px 0;
+  background-color: #3f51b5;
+  border: none;
+  border-radius: 20px;
+  color: white;
+  text-transform: uppercase;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.filter__button:hover {
+  background-color: #1a237e;
+}
+
+.selected__filters {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+.filter__selected_container {
+  margin: 0 10px 20px 0;
+  box-sizing: border-box;
+  display: flex;
+  align-items: flex-start;
+  font-size: small;
+}
+
+.filter__selected {
+  padding: 5px 15px;
+  background-color: var(--extra-light);
+  border-radius: 20px 0 0 20px;
+}
+
+.remove__filter {
+  border: none;
+  background-color: #f0f0f0;
+  border-left: 1px solid #ddd;
+  padding: 5px 10px;
+  cursor: pointer;
+  border-radius: 0 20px 20px 0;
+  font-size: small;
+}

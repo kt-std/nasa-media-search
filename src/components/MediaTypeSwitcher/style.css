@@ -1,0 +1,50 @@
+.label {
+  padding: var(--padding);
+  box-sizing: border-box;
+  height: 100%;
+}
+.button {
+  top: 0;
+  left: 0;
+  height: 0;
+  width: 0;
+  height: 1px;
+  width: 1px;
+  position: absolute;
+  -moz-appearance: none;
+  -webkit-appearance: none;
+  appearance: none;
+  border: none;
+}
+
+.button:checked + .wrapper {
+  visibility: visible;
+}
+
+.mediaType {
+}
+
+.wrapper {
+  background-color: var(--light-color);
+  position: absolute;
+  top: calc(var(--input-height) + var(--triangle--size) * 2);
+  left: 0;
+  border-radius: var(--border-radius);
+  flex-direction: column;
+  padding: 20px;
+  visibility: hidden;
+  z-index: 1;
+}
+
+.wrapper:before {
+  content: '';
+  border: var(--triangle-color);
+  border-left: var(--triangle);
+  border-right: var(--triangle);
+  border-top: var(--triangle);
+  position: absolute;
+  top: calc(var(--triangle--size) * (-2));
+  left: 5px;
+  height: 0;
+  width: 0;
+}

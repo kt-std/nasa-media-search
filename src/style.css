@@ -1,0 +1,48 @@
+:root {
+  --input-height: 48px;
+  --border-radius: 4px;
+  --light-color: #e5e5e5;
+  --padding: 10px 20px;
+  --border: 1px solid #ddd;
+  --triangle--size: 5px;
+  --triangle: var(--triangle--size) solid transparent;
+  --triangle-color: var(--triangle--size) solid var(--light-color);
+  --main-background: #e0e0e0;
+  --extra-light: #f8f8f8;
+  --form-padding: 5px;
+}
+
+* {
+  padding: 0;
+  margin: 0;
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+body {
+  background-image: url(../assets/bg.jpg);
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+body.no_image__background {
+  background: var(--main-background);
+}
+
+#app-root {
+  min-height: 100vh;
+  height: auto;
+}
+
+.overflow {
+  text-overflow: ellipsis;
+  width: 120px;
+  overflow: scroll;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  white-space: nowrap;
+}
+
+.card__item:before::-webkit-scrollbar,
+.text::-webkit-scrollbar {
+  display: none;
+}
