@@ -23,4 +23,4 @@ window.sortMedia = sortMedia;
 window.filterItems = filterItems;
 window.removeFilter = removeFilter;
 
-window.renderApp(App, 'app-root');
+window.renderApp(App, document.getElementById('app-root'));

@@ -1,12 +1,16 @@
+/** @jsx createElement */
+/*** @jsxFrag createFragment */
+
+import { createElement } from './element';
 import { updateFocusState } from '../data/mediaData';
 
 let Component, Target;
 
-export default function renderApp(componentFunction, targetElementId) {
+export default function renderApp(componentFunction = null, target = null) {
   if (componentFunction) Component = componentFunction;
-  if (targetElementId) Target = targetElementId;
-  document.getElementById(Target).innerHTML = `
-        ${Component()}
-    `;
+  if (target) Target = target;
+  Target.innerHTML = '';
+  Target.appendChild(<Component />);
+
   updateFocusState();
 }

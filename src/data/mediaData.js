@@ -34,6 +34,7 @@ export function openHomePage(storage, e) {
   storage.mediaTypes = [];
   resetState(storage);
   removeClass(`${styles.no_image__background}`, document.body);
+  window.renderApp();
 }
 
 export function updateMediaTypes(storage, input) {
@@ -43,6 +44,7 @@ export function updateMediaTypes(storage, input) {
   } else {
     storage.mediaTypes.splice(inputIndex, 1);
   }
+  window.renderApp();
 }
 
 export function sortMedia(storage, e) {
@@ -87,6 +89,7 @@ export function selectFilter(storage, filter) {
     removeFilter(storage, filter);
     storage.focusOnFilter = null;
   }
+  window.renderApp();
 }
 
 export function removeFilter(storage, filter) {
