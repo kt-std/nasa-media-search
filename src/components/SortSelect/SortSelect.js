@@ -1,6 +1,8 @@
 /** @jsx createElement */
 /** @jsxFrag createFragment */
 import { createElement, createFragment } from '../../framework/element';
+import { sortMedia } from '../../data/mediaData';
+import renderApp from '../../framework/renderer';
 import styles from './style.css';
 import SortOptions from './SortOptions';
 
@@ -12,8 +14,8 @@ export default function SortSelect() {
         name="mediaSort"
         id="mediaSort"
         onchange={event => {
-          window.sortMedia(window.data, event);
-          window.renderApp();
+          sortMedia(window.data, event);
+          renderApp();
         }}
       >
         <SortOptions storage={window.data} />

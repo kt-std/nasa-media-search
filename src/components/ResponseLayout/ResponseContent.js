@@ -6,7 +6,8 @@ import SortSelect from '../SortSelect';
 import SelectedFiltersLayout from '../SelectedFiltersLayout';
 import MediaCards from '../MediaCards';
 import NoResults from '../NoResults';
-//TODO: fix searchValue update when input is changed
+
+//TODO: fix searchValue update when input is changed (total hits for*)
 export default function ResponseContent() {
   return !window.data.noResults ? (
     <div class={styles.cards__wrapper} id="cardsWrapper">

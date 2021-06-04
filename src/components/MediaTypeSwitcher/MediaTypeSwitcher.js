@@ -1,6 +1,7 @@
 /** @jsx createElement */
 /** @jsxFrag createFragment */
 import { createElement, createFragment } from '../../framework/element';
+import { updateMediaTypes } from '../../data/mediaData';
 import styles from './style.css';
 
 export default function MediaTypeSwitcher({ storage }) {

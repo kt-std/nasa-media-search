@@ -1,6 +1,7 @@
 /** @jsx createElement */
 /** @jsxFrag createFragment */
 import { createElement, createFragment } from '../../framework/element';
+import { searchByTerm } from '../../data/mediaData';
 import styles from './style.css';
 import MediaTypeSwitcher from '../MediaTypeSwitcher';
 import SearchInput from '../SearchInput';
@@ -15,7 +16,7 @@ export default function SearchLayout({ searchPosition }) {
       <div class={searchClasses}>
         {searchPosition === 'top' ? <Logo /> : ``}
         <form
-          onsubmit={event => window.searchByTerm(window.data, event)}
+          onsubmit={event => searchByTerm(window.data, event)}
           id="searchForm"
           class={styles.form}
         >
