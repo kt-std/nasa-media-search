@@ -5,6 +5,7 @@ import {
   getResponseData,
   setError,
 } from './mediaData';
+import renderApp from '../framework/renderer';
 
 import { replaceProtocolExtension, fetchData, getItemByStringPattern } from '../utils';
 
@@ -16,7 +17,7 @@ export async function requestMedia(storage) {
   storage.searchValue = searchInputValue;
   storage.responseData = [];
 
-  window.renderApp();
+  renderApp();
 
   await getDataPages(storage, requestURL);
   await getAndPrepareMetadataForRendering(storage);
@@ -62,7 +63,7 @@ async function getDataPages(storage, requestURL) {
 export async function getAndPrepareMetadataForRendering(storage) {
   const metadataFromLinks = await requestCollectionAndMetadata(storage);
   await getFiltersAndUpdate(storage, metadataFromLinks);
-  window.renderApp();
+  renderApp();
 }
 
 function getCollectionData(data, storage) {

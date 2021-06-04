@@ -45,6 +45,8 @@
   background-repeat: no-repeat;
   background-color: #222;
 }
+.image {
+}
 
 .video:after {
   content: '';

@@ -19,6 +19,7 @@ import {
 } from '../utils';
 import { requestMedia } from './imagesAPI';
 import styles from '/style.css';
+import renderApp from '../framework/renderer';
 
 export function searchByTerm(storage, e) {
   e.preventDefault();
@@ -34,6 +35,7 @@ export function openHomePage(storage, e) {
   storage.mediaTypes = [];
   resetState(storage);
   removeClass(`${styles.no_image__background}`, document.body);
+  renderApp();
 }
 
 export function updateMediaTypes(storage, input) {
@@ -43,6 +45,7 @@ export function updateMediaTypes(storage, input) {
   } else {
     storage.mediaTypes.splice(inputIndex, 1);
   }
+  renderApp();
 }
 
 export function sortMedia(storage, e) {
@@ -87,6 +90,7 @@ export function selectFilter(storage, filter) {
     removeFilter(storage, filter);
     storage.focusOnFilter = null;
   }
+  renderApp();
 }
 
 export function removeFilter(storage, filter) {
@@ -315,7 +319,7 @@ export function setError(errMessage, storage) {
   storage.allRequestsMade = true;
   storage.isError = true;
   storage.errorMessage = `Ooops!..${errMessage}.<br/>Try to reload the page`;
-  window.renderApp();
+  renderApp();
 }
 
 export function resetState(storage) {

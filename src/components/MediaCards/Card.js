@@ -1,21 +1,27 @@
+/** @jsx createElement */
+/** @jsxFrag createFragment */
+import { createElement, createFragment } from '../../framework/element';
 import styles from './style.css';
 
-export default function Card(dataItem) {
-  return `
-  <div class="${styles.card__item} 
-    ${
+//TODO: fix styling problems style = [object Object]
+
+export default function Card({ dataItem }) {
+  const cardType =
       dataItem.mediaType === 'audio'
-        ? `${styles.audio}`
+        ? styles.audio
         : dataItem.mediaType === 'video'
-        ? `${styles.video}`
-        : `${styles.image}`
-    }" 
-    id="${dataItem.id}"
-    data-background="${dataItem.previewImage}"
-    style="background-image: url(
-    ${
-      dataItem.previewImage !== null ? dataItem.previewImage : require('../../../assets/audio.svg')
-    })" 
-    data-title="${dataItem.title}">
-  </div>`;
+        ? styles.video
+        : styles.image,
+    cardClass = `${styles.card__item} ${cardType}`,
+    backgroundURL =
+      dataItem.previewImage !== null ? dataItem.previewImage : require('../../../assets/audio.svg');
+  return (
+    <div
+      class={cardClass}
+      id={dataItem.id}
+      style={{ backgroundImage: `url(${backgroundURL})` }}
+      data-background={dataItem.previewImage}
+      data-title={dataItem.title}
+    ></div>
+  );
 }
