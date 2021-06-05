@@ -1,6 +1,6 @@
 /** @jsx createElement */
 /** @jsxFrag createFragment */
-import { createElement, createFragment } from '../../framework/element';
+import { createElement, createFragment } from '../../framework';
 import ResponseLayout from '../ResponseLayout';
 import Loader from '../Loader';
 import SearchLayout from '../SearchLayout';

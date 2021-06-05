@@ -1,7 +1,7 @@
 /** @jsx createElement */
 /** @jsxFrag createFragment */
-import { createElement, createFragment } from '../../framework/element';
-import renderApp from '../../framework/renderer';
+import { createElement, createFragment } from '../../framework';
+import render from '../../framework';
 import { removeFilter } from '../../data/mediaData';
 import styles from './style.css';
 
@@ -15,7 +15,7 @@ export default function SelectedFilter({ filterSelected }) {
         class={styles.remove__filter}
         onclick={event => {
           removeFilter(window.data, event.target);
-          renderApp();
+          render();
         }}
         value={filterSelected.value}
         data-categorie={filterSelected.categorie}

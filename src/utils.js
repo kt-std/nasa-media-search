@@ -6,6 +6,8 @@ export function isElementInArray(data, element) {
   return data.some(dataItem => dataItem.toUpperCase() === element);
 }
 
+export const isFunction = func => typeof func === 'function';
+
 export function getNumberFromString(value) {
   return value ? parseInt(value) : undefined;
 }

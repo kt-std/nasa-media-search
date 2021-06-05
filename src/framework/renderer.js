@@ -3,14 +3,22 @@
 
 import { createElement } from './element';
 import { updateFocusState } from '../data/mediaData';
+import { current } from './hooks';
 
-let Component, Target;
+let timer;
 
-export default function renderApp(componentFunction = null, target = null) {
-  if (componentFunction) Component = componentFunction;
-  if (target) Target = target;
-  Target.innerHTML = '';
-  Target.appendChild(<Component />);
+export function render(Component, target) {
+  function workLoop() {
+    if (current.shouldReRender) {
+      current.shouldReRender = false;
+      target.replaceChildren(<Component />);
+    }
 
+    cancelAnimationFrame(timer);
+    timer = requestAnimationFrame(workLoop);
+  }
+  timer = requestAnimationFrame(workLoop);
   updateFocusState();
 }
+
+export default render;

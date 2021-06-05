@@ -1,6 +1,6 @@
 /** @jsx createElement */
 /** @jsxFrag createFragment */
-import { createElement, createFragment } from '../../framework/element';
+import { createElement, createFragment } from '../../framework';
 import { searchByTerm } from '../../data/mediaData';
 import styles from './style.css';
 import MediaTypeSwitcher from '../MediaTypeSwitcher';

@@ -1,7 +1,7 @@
 /** @jsx createElement */
 /** @jsxFrag createFragment */
-import { createElement, createFragment } from '../../framework/element';
-import renderApp from '../../framework/renderer';
+import { createElement, createFragment } from '../../framework';
+import render from '../../framework';
 import styles from './style.css';
 
 export default function SearchInput({ storage }) {
@@ -13,7 +13,7 @@ export default function SearchInput({ storage }) {
       class={styles.search__input}
       onchange={event => {
         window.data.searchValue = event.target.value;
-        renderApp();
+        render();
       }}
       value={storage.searchValue !== null ? storage.searchValue : ``}
     />

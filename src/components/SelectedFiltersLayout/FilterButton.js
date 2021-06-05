@@ -1,7 +1,7 @@
 /** @jsx createElement */
 /** @jsxFrag createFragment */
-import { createElement, createFragment } from '../../framework/element';
-import renderApp from '../../framework/renderer';
+import { createElement, createFragment } from '../../framework';
+import render from '../../framework';
 import { filterItems } from '../../data/mediaData';
 
 import styles from './style.css';
@@ -11,7 +11,7 @@ export default function FilterButton() {
     <button
       onclick={event => {
         filterItems(window.data);
-        renderApp();
+        render();
       }}
       class={styles.filter__button}
     >

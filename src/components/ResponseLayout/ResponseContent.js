@@ -1,6 +1,6 @@
 /** @jsx createElement */
 /** @jsxFrag createFragment */
-import { createElement, createFragment } from '../../framework/element';
+import { createElement, createFragment } from '../../framework';
 import styles from './style.css';
 import SortSelect from '../SortSelect';
 import SelectedFiltersLayout from '../SelectedFiltersLayout';
