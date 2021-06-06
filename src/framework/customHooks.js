@@ -1,4 +1,5 @@
 import { useState, useEffect } from './hooks';
+import { requestMedia } from '../data/imagesAPI';
 
 export const useMediaRequest = () => {
   const [requestMade, setRequestMade] = useState(false);
@@ -14,13 +15,14 @@ export const useMediaRequest = () => {
     setIsDataLoading,
   };
 };
+
 export const useSearchParams = () => {
   const [searchValue, setSearchValue] = useState(null);
   const [mediaTypes, setMediaTypes] = useState([]);
   return { searchValue, setSearchValue, mediaTypes, setMediaTypes };
 };
 
-export const useData = () => {
+export const useData = requestMade => {
   const [responseData, setResponseData] = useState([]);
   const [flattenedData, setFlattenedData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
@@ -32,7 +34,11 @@ export const useData = () => {
   if no data=> no results
   if data => totalHits
   */
+  /*
+  useEffect(() => {
 
+  }, [isDataLoading]);
+*/
   return {
     responseData,
     setResponseData,

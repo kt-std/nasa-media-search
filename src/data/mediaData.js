@@ -21,11 +21,12 @@ import { requestMedia } from './imagesAPI';
 import styles from '/style.css';
 import renderApp from '../framework/renderer';
 
-export function searchByTerm(e) {
+export function searchByTerm(error, searchParams, data, mediaRequest, filter, sort, e) {
   e.preventDefault();
-  resetState();
-  storage.isDataLoading = true;
-  requestMedia(storage);
+  resetState(data, mediaRequest, sort, filter);
+  mediaRequest.setIsDataLoading(true);
+  /* requestMedia(searchParams, data, mediaRequest, error, filter);
+  console.log(data);*/
 }
 
 export function openHomePage(storage, e) {
@@ -109,33 +110,41 @@ export function removeFilter(defaultStateParams, filter) {
   }
 }
 
-export function setError(errMessage, setErrorStateCB, setDataLoadingCB, setAllRequestsMadeCB) {
-  setDataLoading(false);
-  setAllRequestsMadeCB(true);
-  setErrorStateCB({
-    isError: true,
-    errorMessage: `Ooops!..${errMessage}.<br/>Try to reload the page`,
-  });
+export function resetState(data, mediaRequest, sort, filter) {
+  data.setTotalHits(null);
+  data.setNoResults(false);
+  mediaRequest.setAllRequestsMade(false);
+  mediaRequest.setRequestMade(false);
+  sort.setIsSortingSet(false);
+  filter.setSelectedFiltersList([]);
+  filter.setPerformFiltering(false);
+  filter.setFiltersSelected(false);
+  filter.setFilters({});
+
+  // const resetStateParams = {
+  //   totalHits: null,
+  //   //sortingSet: false,
+  //   requestMade: false,
+  //   //focusOnFilter: null,
+  //   selectedFiltersList: [],
+  //   performFiltering: false,
+  //   filtersSelected: false,
+  //   filters: {},
+  //   noResults: false,
+  //   allRequestsMade: false,
+  // };
+  //setDefaultStateCB({ ...defaultStateParams, ...resetStateParams });
 }
 
-export function resetState(defaultStateParams, setDefaultStateCB) {
-  const resetStateParams = {
-    totalHits: null,
-    sortingSet: false,
-    requestMade: false,
-    focusOnFilter: null,
-    selectedFiltersList: [],
-    performFiltering: false,
-    filtersSelected: false,
-    filters: {},
-    noResults: false,
-    allRequestsMade: false,
-  };
-  setDefaultStateCB({ ...defaultStateParams, ...resetStateParams });
+export function setError(errMessage, mediaRequest, error) {
+  mediaRequest.setIsDataLoading(false);
+  mediaRequest.setAllRequestsMade(true);
+  error.setIsError(true);
+  error.setErrorMessage(`Ooops!..${errMessage}.<br/>Try to reload the page`);
 }
 
-function changeStateToRequestMade(requestMade) {
-  requestMade = true;
+export function changeBackground() {
+  //requestMadeCB(true);
   addClass(`${styles.no_image__background}`, document.body);
 }
 
@@ -193,49 +202,51 @@ function getConciseContentFromRespond(items) {
     };
   });
 }
-
-export async function getFiltersAndUpdate(flattenedData, metadata, mediaTypes, filters) {
-  await getFiltersFromMetadata(metadata, flattenedData);
-  storage.isDataLoading = false;
-  getFiltersFromLists(flattenedData, mediaTypes, filters);
-  storage.totalHits = flattenedData.length;
+//remove async
+export function getFiltersAndUpdate(flattenedData, metadata) {
+  getFiltersFromMetadata(metadata, flattenedData);
+  //mediaRequest.setIsDataLoading(false);
+  const { filters } = getFiltersFromLists(flattenedData),
+    totalHits = flattenedData.length;
+  return { filters, totalHits };
 }
 
-function getFiltersFromMetadata(metadata, data) {
-  return metadata.forEach((metadataItem, i) => {
-    getFiltersDataFromMetadata(metadataItem, data[i]);
+function getFiltersFromMetadata(metadata, flattenedData) {
+  metadata.forEach((mediaMetadata, i) => {
+    getFiltersDataFromMetadata(mediaMetadata, flattenedData[i]);
   });
 }
 
-function getFiltersDataFromMetadata(responseBody, dataItem) {
-  const mediaMetadata = responseBody,
-    mediaKeysNeeded = MEDATADA_KEYS_BY_MEDIA_TYPE[dataItem.mediaType];
+function getFiltersDataFromMetadata(mediaMetadata, dataItem) {
+  const mediaKeysNeeded = MEDATADA_KEYS_BY_MEDIA_TYPE[dataItem.mediaType];
   Object.keys(mediaKeysNeeded).forEach(key => {
     transformKeyValueToNumber(key, dataItem, mediaMetadata[mediaKeysNeeded[key]]);
   });
 }
 
-function getFiltersFromLists(data, mediaTypes, filtersContainer) {
-  data.forEach(dataItem => {
-    mediaTypes.forEach(mediaType => {
-      FILTERS_BY_MEDIA_TYPE[mediaType].forEach(key => {
-        if (!filtersContainer[key]) {
-          filtersContainer[key] = {};
+function getFiltersFromLists(flattenedData) {
+  const filtersContainer = {};
+  flattenedData.forEach(dataItem => {
+    // mediaTypes.forEach(mediaType => {
+    FILTERS_BY_MEDIA_TYPE[dataItem.mediaType].forEach(key => {
+      if (!filtersContainer[key]) {
+        filtersContainer[key] = {};
+      }
+      if (dataItem[key]) {
+        if (Array.isArray(dataItem[key])) {
+          dataItem[key].forEach(keyword => {
+            //if (mediaType === dataItem.mediaType) {
+            updateFilterValue(filtersContainer[key], keyword);
+            //}
+          });
+        } else {
+          updateFilterValue(filtersContainer[key], dataItem[key]);
         }
-        if (dataItem[key]) {
-          if (Array.isArray(dataItem[key])) {
-            dataItem[key].forEach(keyword => {
-              if (mediaType === dataItem.mediaType) {
-                updateFilterValue(filtersContainer[key], keyword);
-              }
-            });
-          } else {
-            updateFilterValue(filtersContainer[key], dataItem[key]);
-          }
-        }
-      });
+      }
     });
+    //});
   });
+  return { filters: filtersContainer };
 }
 
 function updateFilterValue(filtersContainer, keyword) {

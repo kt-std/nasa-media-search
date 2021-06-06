@@ -2,9 +2,10 @@
   box-sizing: border-box;
   padding: var(--padding);
   height: var(--input-height);
-  min-width: 500px;
+  max-width: 500px;
+  min-width: 400px;
   border-radius: 0;
   border: none;
-  border-right: var(--border);
+
   border-left: var(--border);
 }

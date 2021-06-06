@@ -10,10 +10,12 @@ import Logo from '../Logo';
 
 export default function SearchLayout({
   searchPosition,
-  mediaTypes,
-  setMediaTypes,
-  searchValue,
-  setSearchValue,
+  searchParams,
+  data,
+  mediaRequest,
+  filter,
+  sort,
+  error,
 }) {
   const searchPositionClass = searchPosition === 'top' ? styles.form_top : styles.form_middle,
     searchClasses = [styles.form__wrapper, searchPositionClass].join(' ');
@@ -21,16 +23,29 @@ export default function SearchLayout({
     <>
       <div class={searchClasses}>
         {searchPosition === 'top' ? <Logo /> : ``}
-        <form onsubmit={event} id="searchForm" class={styles.form}>
+        <form
+          onsubmit={event =>
+            searchByTerm(error, searchParams, data, mediaRequest, filter, sort, event)
+          }
+          id="searchForm"
+          class={styles.form}
+        >
           <div class={styles.search__box}>
-            <MediaTypeSwitcher mediaTypes={mediaTypes} setMediaTypes={setMediaTypes} />
-            <SearchInput searchValue={searchValue} setSearchValue={setSearchValue} />
+            <MediaTypeSwitcher
+              mediaTypes={searchParams.mediaTypes}
+              setMediaTypes={searchParams.setMediaTypes}
+            />
+            <SearchInput
+              searchValue={searchParams.searchValue}
+              setSearchValue={searchParams.setSearchValue}
+            />
           </div>
-          <SearchButton mediaTypes={mediaTypes} searchValue={searchValue} />
+          <SearchButton
+            mediaTypes={searchParams.mediaTypes}
+            searchValue={searchParams.searchValue}
+          />
         </form>
       </div>
     </>
   );
 }
-
-//  searchByTerm(window.data, event)

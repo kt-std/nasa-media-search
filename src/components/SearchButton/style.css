@@ -1,6 +1,21 @@
 .search__button {
   box-sizing: border-box;
   padding: var(--padding);
+  margin: 0;
   border: none;
-  height: 100%;
+  cursor: pointer;
+  border-top-right-radius: inherit;
+  border-bottom-right-radius: inherit;
+  align-self: stretch;
+  color: white;
+  background-color: #1976d2;
+}
+
+.search__button:hover {
+  background-color: #2196f3;
+}
+
+.search__button:disabled {
+  background-color: #eee;
+  color: grey;
 }

@@ -3,52 +3,47 @@ import {
   setSelectedMediaTypes,
   getFiltersAndUpdate,
   getResponseData,
-  changeStateToRequestMade,
+  changeBackground,
   setError,
 } from './mediaData';
 import renderApp from '../framework/renderer';
 
 import { replaceProtocolExtension, getItemByStringPattern } from '../utils';
 
-export async function requestMedia(storage) {
+export async function requestMedia() {
+  const data = {};
   const searchInputValue = document.getElementById('searchInput').value,
     mediaTypes = getMediaTypes();
   let requestURL = createRequestURL(searchInputValue, mediaTypes);
-  storage.mediaTypes = setSelectedMediaTypes(mediaTypes);
-  storage.searchValue = searchInputValue;
-  storage.responseData = [];
+  //respnseData=[];
 
-  renderApp();
-
-  await getDataPages(storage, requestURL);
-  await getAndPrepareMetadataForRendering(storage);
+  const { responseData, error } = await getDataPages(requestURL),
+    dataReceived = await getAndPrepareMetadataForRendering(responseData, error);
+  return { ...dataReceived, mediaTypes };
 }
 
-export async function requestCollectionAndMetadata(
-  responseData,
-  isError,
-  flattenedData,
-  noResults,
-) {
-  if (!isError) {
-    flattenedData = getResponseData(responseData);
-    if (!flattenedData.length) noResults = true;
-    const collectionData = await getCollectionData(flattenedData, storage),
-      metadataFromLinks = await getMetadata(storage.flattenedData, collectionData, storage);
-    return metadataFromLinks;
-  }
+export async function requestCollectionAndMetadata(responseData) {
+  let noResults = false;
+  const flattenedData = getResponseData(responseData);
+  if (!flattenedData.length) noResults = true;
+  const collectionData = await getCollectionData(flattenedData);
+  const metadataFromLinks = await getMetadata(flattenedData, collectionData);
+  return { metadataFromLinks, flattenedData };
 }
 
-async function getDataPages(storage, requestURL) {
-  let pagesCounter = 0;
-  while (!storage.allRequestsMade) {
+async function getDataPages(requestURL) {
+  let pagesCounter = 0,
+    allRequestsMade = false,
+    responseData = [],
+    error = { isError: false, errorMessage: '' };
+  while (!allRequestsMade) {
     await fetch(requestURL)
       .then(data => data.json())
       .then(responseBody => {
         if (responseBody.collection.links) {
           const { nextPageLinkIndex, hasPage } = hasNextPage(responseBody.collection.links);
           if (pagesCounter === 2 || !hasPage) {
-            storage.allRequestsMade = true;
+            allRequestsMade = true;
           } else {
             requestURL = replaceProtocolExtension(
               responseBody.collection.links[nextPageLinkIndex].href,
@@ -56,49 +51,52 @@ async function getDataPages(storage, requestURL) {
             pagesCounter++;
           }
         } else {
-          storage.allRequestsMade = true;
+          allRequestsMade = true;
         }
-        storage.responseData = storage.responseData.concat(responseBody.collection.items);
+        responseData = responseData.concat(responseBody.collection.items);
       })
-      .catch(err => {
-        setError(err, storage);
+      .catch(errMsg => {
+        error = { isError: true, errorMessage: errMsg };
+        //setError(err, mediaRequest, error);
       });
+  }
+  return { responseData, error };
+}
+
+export async function getAndPrepareMetadataForRendering(responseData, error) {
+  if (!error.isError) {
+    const { metadataFromLinks, flattenedData, error } = await requestCollectionAndMetadata(
+        responseData,
+      ),
+      { filters, totalHits } = await getFiltersAndUpdate(flattenedData, metadataFromLinks);
+    changeBackground();
+    return { filters, totalHits, flattenedData };
   }
 }
 
-export async function getAndPrepareMetadataForRendering(storage) {
-  const metadataFromLinks = await requestCollectionAndMetadata(storage);
-  await getFiltersAndUpdate(storage, metadataFromLinks);
-  changeStateToRequestMade(requestMade);
-  renderApp();
+async function getCollectionData(flattenedData) {
+  const requests = flattenedData.map(dataItem => fetchData(dataItem.href));
+  const data = await getAllPromisesData(requests);
+  return data;
 }
 
-function getCollectionData(data, storage) {
-  const requests = data.map(dataItem => fetchData(dataItem.href, storage));
-  return getAllPromisesData(requests, storage);
-}
-
-function getMetadataPromisesFromCollectionList(data, collectionData, storage) {
+function getMetadataPromisesFromCollectionList(flattenedData, collectionData) {
   return collectionData.map((collectionDataItem, i) => {
     const metadataLink = getItemByStringPattern('metadata.json', collectionDataItem);
-    data[i].metadata = replaceProtocolExtension(metadataLink);
-    return fetchData(data[i].metadata, storage);
+    flattenedData[i].metadata = replaceProtocolExtension(metadataLink);
+    return fetchData(flattenedData[i].metadata);
   });
 }
 
-function getMetadata(data, collectionData, storage) {
-  const metadataFetchedLinks = getMetadataPromisesFromCollectionList(data, collectionData, storage);
-  return getAllPromisesData(metadataFetchedLinks, storage);
+function getMetadata(flattenedData, collectionData) {
+  const metadataFetchedLinks = getMetadataPromisesFromCollectionList(flattenedData, collectionData);
+  return getAllPromisesData(metadataFetchedLinks);
 }
 
-function getAllPromisesData(data, storage) {
-  return Promise.all(data)
-    .then(responseData =>
-      Promise.all(responseData.map(responseDataItem => responseDataItem.json())),
-    )
-    .catch(err => {
-      setError(err, storage);
-    });
+function getAllPromisesData(data) {
+  return Promise.all(data).then(responseData =>
+    Promise.all(responseData.map(responseDataItem => responseDataItem.json())),
+  );
 }
 
 function hasNextPage(linksList) {
@@ -115,6 +113,9 @@ function createRequestURL(searchInputValue, mediaTypes) {
   }`;
 }
 
-function fetchData(url, storage) {
-  return fetch(url).catch(err => setError(err, storage));
+export async function fetchData(url) {
+  return await fetch(url).catch(err => {
+    throw Error(err);
+  });
+  //setError(err, error)
 }
