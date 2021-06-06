@@ -39,6 +39,15 @@ export function openHomePage(media, e) {
   removeClass(`${styles.no_image__background}`, document.body);
 }
 
+export function updateData(dataParams, data, filter, searchParams) {
+  const { filters, totalHits, flattenedData, mediaTypes, noResults } = dataParams;
+  data.setTotalHits(totalHits);
+  data.setNoResults(noResults);
+  data.setFlattenedData(flattenedData);
+  filter.setFilters(filters);
+  searchParams.setMediaTypes(mediaTypes);
+}
+
 export function updateMediaTypes(mediaTypesValue, setMediaTypesCB, input) {
   const inputIndex = mediaTypesValue.indexOf(input.value);
   if (inputIndex === -1) {
@@ -120,20 +129,6 @@ export function resetState(data, mediaRequest, sort, filter) {
   filter.setPerformFiltering(false);
   filter.setFiltersSelected(false);
   filter.setFilters({});
-
-  // const resetStateParams = {
-  //   totalHits: null,
-  //   //sortingSet: false,
-  //   requestMade: false,
-  //   //focusOnFilter: null,
-  //   selectedFiltersList: [],
-  //   performFiltering: false,
-  //   filtersSelected: false,
-  //   filters: {},
-  //   noResults: false,
-  //   allRequestsMade: false,
-  // };
-  //setDefaultStateCB({ ...defaultStateParams, ...resetStateParams });
 }
 
 export function setError(errMessage, mediaRequest, error) {

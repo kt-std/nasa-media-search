@@ -28,7 +28,7 @@ export async function requestCollectionAndMetadata(responseData) {
   if (!flattenedData.length) noResults = true;
   const collectionData = await getCollectionData(flattenedData);
   const metadataFromLinks = await getMetadata(flattenedData, collectionData);
-  return { metadataFromLinks, flattenedData };
+  return { metadataFromLinks, flattenedData, noResults };
 }
 
 async function getDataPages(requestURL) {
@@ -65,12 +65,15 @@ async function getDataPages(requestURL) {
 
 export async function getAndPrepareMetadataForRendering(responseData, error) {
   if (!error.isError) {
-    const { metadataFromLinks, flattenedData, error } = await requestCollectionAndMetadata(
-        responseData,
-      ),
-      { filters, totalHits } = await getFiltersAndUpdate(flattenedData, metadataFromLinks);
+    const { metadataFromLinks, flattenedData, noResults } = await requestCollectionAndMetadata(
+      responseData,
+    );
     changeBackground();
-    return { filters, totalHits, flattenedData };
+    if (!noResults) {
+      const { filters, totalHits } = await getFiltersAndUpdate(flattenedData, metadataFromLinks);
+      return { filters, totalHits, flattenedData, noResults };
+    }
+    return { filters: {}, noResults, totalHits: null, flattenedData: [] };
   }
 }
 

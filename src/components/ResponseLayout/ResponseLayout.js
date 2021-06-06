@@ -12,14 +12,15 @@ export default function ResponseLayout({ searchPosition, media }) {
       <SearchLayout searchPosition={searchPosition} {...media} media={media} />
       <div class={styles.response__layout}>
         <br />
-        <FiltersByCategories noResults={noResults} />
+        <ResponseContent media={media} />
         <br />
       </div>
     </>
   );
 }
 /*
-
-        <ResponseContent />
+<FiltersByCategories noResults={noResults} />
+        
 
 */
+//TODO: fix and add noResults isError
