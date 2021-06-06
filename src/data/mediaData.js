@@ -21,9 +21,9 @@ import { requestMedia } from './imagesAPI';
 import styles from '/style.css';
 import renderApp from '../framework/renderer';
 
-export function searchByTerm(storage, e) {
+export function searchByTerm(e) {
   e.preventDefault();
-  resetState(storage);
+  resetState();
   storage.isDataLoading = true;
   requestMedia(storage);
 }
@@ -38,14 +38,14 @@ export function openHomePage(storage, e) {
   renderApp();
 }
 
-export function updateMediaTypes(storage, input) {
-  const inputIndex = storage.mediaTypes.indexOf(input.value);
+export function updateMediaTypes(mediaTypesValue, setMediaTypesCB, input) {
+  const inputIndex = mediaTypesValue.indexOf(input.value);
   if (inputIndex === -1) {
-    storage.mediaTypes.push(input.value);
+    mediaTypesValue.push(input.value);
   } else {
-    storage.mediaTypes.splice(inputIndex, 1);
+    mediaTypesValue.splice(inputIndex, 1);
   }
-  renderApp();
+  setMediaTypesCB(mediaTypesValue);
 }
 
 export function sortMedia(storage, e) {
@@ -93,8 +93,9 @@ export function selectFilter(storage, filter) {
   renderApp();
 }
 
-export function removeFilter(storage, filter) {
+export function removeFilter(defaultStateParams, filter) {
   const { value: filterName } = filter,
+    {} = defaultStateParams,
     categorie = filter.getAttribute('data-categorie'),
     deleteIndex = storage.selectedFiltersList.findIndex(
       element => element.value === filterName && categorie === element.categorie,
@@ -108,9 +109,38 @@ export function removeFilter(storage, filter) {
   }
 }
 
-export function updateFocusState() {
-  if (window.data.focusOnFilter !== null)
-    document.querySelector(`[name="${window.data.focusOnFilter}"]`).focus();
+export function setError(errMessage, setErrorStateCB, setDataLoadingCB, setAllRequestsMadeCB) {
+  setDataLoading(false);
+  setAllRequestsMadeCB(true);
+  setErrorStateCB({
+    isError: true,
+    errorMessage: `Ooops!..${errMessage}.<br/>Try to reload the page`,
+  });
+}
+
+export function resetState(defaultStateParams, setDefaultStateCB) {
+  const resetStateParams = {
+    totalHits: null,
+    sortingSet: false,
+    requestMade: false,
+    focusOnFilter: null,
+    selectedFiltersList: [],
+    performFiltering: false,
+    filtersSelected: false,
+    filters: {},
+    noResults: false,
+    allRequestsMade: false,
+  };
+  setDefaultStateCB({ ...defaultStateParams, ...resetStateParams });
+}
+
+function changeStateToRequestMade(requestMade) {
+  requestMade = true;
+  addClass(`${styles.no_image__background}`, document.body);
+}
+
+export function updateFocusState(focusOnFilter) {
+  if (focusOnFilter !== null) document.querySelector(`[name="${focusOnFilter}"]`).focus();
 }
 
 export function isFilterSelected(filtersSelected, filterName, categorie) {
@@ -119,8 +149,8 @@ export function isFilterSelected(filtersSelected, filterName, categorie) {
   );
 }
 
-export function isOptionNeeded(storage, option) {
-  return storage.mediaTypes.some(mediaType => {
+export function isOptionNeeded(mediaTypes, option) {
+  return mediaTypes.some(mediaType => {
     return MEDIA_TYPE_SORTING_OPTIONS[mediaType].indexOf(option) !== -1;
   });
 }
@@ -134,8 +164,8 @@ export const sortByDirection = {
   },
 };
 
-export function getResponseData(storage) {
-  return getConciseContentFromRespond(storage.responseData);
+export function getResponseData(responseData) {
+  return getConciseContentFromRespond(responseData);
 }
 
 function getConciseContentFromRespond(items) {
@@ -164,12 +194,11 @@ function getConciseContentFromRespond(items) {
   });
 }
 
-export async function getFiltersAndUpdate(storage, metadata) {
-  await getFiltersFromMetadata(metadata, storage.flattenedData);
+export async function getFiltersAndUpdate(flattenedData, metadata, mediaTypes, filters) {
+  await getFiltersFromMetadata(metadata, flattenedData);
   storage.isDataLoading = false;
-  changeStateToRequestMade(storage);
-  getFiltersFromLists(storage.flattenedData, storage.mediaTypes, storage.filters);
-  storage.totalHits = storage.flattenedData.length;
+  getFiltersFromLists(flattenedData, mediaTypes, filters);
+  storage.totalHits = flattenedData.length;
 }
 
 function getFiltersFromMetadata(metadata, data) {
@@ -312,30 +341,4 @@ function splitStringWithDifferentSeparator(stringToSplit) {
   } else {
     return stringToSplit.split('/');
   }
-}
-
-export function setError(errMessage, storage) {
-  storage.isDataLoading = false;
-  storage.allRequestsMade = true;
-  storage.isError = true;
-  storage.errorMessage = `Ooops!..${errMessage}.<br/>Try to reload the page`;
-  renderApp();
-}
-
-export function resetState(storage) {
-  storage.totalHits = null;
-  storage.sortingSet = false;
-  storage.requestMade = false;
-  storage.focusOnFilter = null;
-  storage.selectedFiltersList = [];
-  storage.performFiltering = false;
-  storage.filtersSelected = false;
-  storage.filters = {};
-  storage.noResults = false;
-  storage.allRequestsMade = false;
-}
-
-function changeStateToRequestMade(storage) {
-  storage.requestMade = true;
-  addClass(`${styles.no_image__background}`, document.body);
 }

@@ -24,10 +24,6 @@ export function replaceProtocolExtension(link) {
   return link.replace(/(http)/gm, 'https');
 }
 
-export function fetchData(url, storage) {
-  return fetch(url).catch(err => setError(err, storage));
-}
-
 export function flat(array) {
   return array.reduce((acc, current) => acc.concat(current), []);
 }

@@ -1,22 +1,28 @@
 export const dataStore = {
   requestMade: false,
-  searchValue: null,
-  mediaTypes: [],
-  filters: {},
-  selectedFiltersList: [],
-  sortingSet: false,
-  filteredData: [],
-  filtersSelected: false,
-  performFiltering: false,
-  sortingOption: false,
-  totalHits: null,
   allRequestsMade: false,
-  lastPage: false,
   isDataLoading: false,
+
   noResults: false,
-  renderingData: false,
-  responseData: [],
+
   isError: false,
-  focusOnFilter: null,
   errorMessage: '',
+
+  filters: {},
+  filtersSelected: false,
+  selectedFiltersList: [],
+  performFiltering: false,
+
+  flattenedData: [],
+  filteredData: [],
+  responseData: [],
+
+  mediaTypes: [],
+  totalHits: null,
+  searchValue: null,
+
+  focusOnFilter: null,
+
+  sortingSet: false,
+  sortingOption: null,
 };

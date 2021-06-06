@@ -4,18 +4,38 @@ import { createElement, createFragment } from '../../framework';
 import ResponseLayout from '../ResponseLayout';
 import Loader from '../Loader';
 import SearchLayout from '../SearchLayout';
+import { useSearchParams, useData, useError, useMediaRequest } from '../../framework/customHooks';
 
 export default function App() {
+  const searchParams = useSearchParams();
+  const {
+    responseData,
+    setResponseData,
+    flattenedData,
+    setFlattenedData,
+    filteredData,
+    setFilteredData,
+  } = useData();
+  const { isError, setIsError, errorMessage, setErrorMessage } = useError();
+  const {
+    requestMade,
+    setRequestMade,
+    allRequestsMade,
+    setAllRequestsMade,
+    isDataLoading,
+    setIsDataLoading,
+  } = useMediaRequest();
+
   return (
     <>
-      {window.data.requestMade ? (
+      {requestMade ? (
         <ResponseLayout searchPosition={'top'} />
-      ) : window.data.isDataLoading ? (
+      ) : isDataLoading ? (
         <Loader text={''} />
-      ) : window.data.isError ? (
-        <Loader text={window.data.errorMessage} />
+      ) : isError ? (
+        <Loader text={errorMessage} />
       ) : (
-        <SearchLayout searchPosition={'middle'} />
+        <SearchLayout searchPosition={'middle'} {...searchParams} />
       )}
     </>
   );

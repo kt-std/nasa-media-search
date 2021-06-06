@@ -18,7 +18,7 @@ export function render(Component, target) {
     timer = requestAnimationFrame(workLoop);
   }
   timer = requestAnimationFrame(workLoop);
-  updateFocusState();
+  //updateFocusState();
 }
 
 export default render;

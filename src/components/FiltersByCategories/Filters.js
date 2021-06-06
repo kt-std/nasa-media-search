@@ -5,10 +5,10 @@ import styles from './style.css';
 import { hasFilteringParameters } from '../../utils.js';
 import FilterBlock from './FilterBlock';
 
-export default function Filters({ filtersContainer }) {
-  return Object.keys(filtersContainer).map(filterName => {
-    if (hasFilteringParameters(filtersContainer[filterName])) {
-      return <FilterBlock filtersContainer={filtersContainer} filterName={filterName} />;
+export default function Filters({ filtersContent }) {
+  return Object.keys(filtersContent).map(filterName => {
+    if (hasFilteringParameters(filtersContent[filterName])) {
+      return <FilterBlock filtersContent={filtersContent} filterName={filterName} />;
     }
     return <></>;
   });

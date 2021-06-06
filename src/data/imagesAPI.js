@@ -3,11 +3,12 @@ import {
   setSelectedMediaTypes,
   getFiltersAndUpdate,
   getResponseData,
+  changeStateToRequestMade,
   setError,
 } from './mediaData';
 import renderApp from '../framework/renderer';
 
-import { replaceProtocolExtension, fetchData, getItemByStringPattern } from '../utils';
+import { replaceProtocolExtension, getItemByStringPattern } from '../utils';
 
 export async function requestMedia(storage) {
   const searchInputValue = document.getElementById('searchInput').value,
@@ -23,11 +24,16 @@ export async function requestMedia(storage) {
   await getAndPrepareMetadataForRendering(storage);
 }
 
-export async function requestCollectionAndMetadata(storage) {
-  if (!storage.isError) {
-    storage.flattenedData = getResponseData(storage);
-    if (!storage.flattenedData.length) storage.noResults = true;
-    const collectionData = await getCollectionData(storage.flattenedData, storage),
+export async function requestCollectionAndMetadata(
+  responseData,
+  isError,
+  flattenedData,
+  noResults,
+) {
+  if (!isError) {
+    flattenedData = getResponseData(responseData);
+    if (!flattenedData.length) noResults = true;
+    const collectionData = await getCollectionData(flattenedData, storage),
       metadataFromLinks = await getMetadata(storage.flattenedData, collectionData, storage);
     return metadataFromLinks;
   }
@@ -63,6 +69,7 @@ async function getDataPages(storage, requestURL) {
 export async function getAndPrepareMetadataForRendering(storage) {
   const metadataFromLinks = await requestCollectionAndMetadata(storage);
   await getFiltersAndUpdate(storage, metadataFromLinks);
+  changeStateToRequestMade(requestMade);
   renderApp();
 }
 
@@ -106,4 +113,8 @@ function createRequestURL(searchInputValue, mediaTypes) {
   return `${API_URL}?q=${searchInputValue}${
     mediaTypes.length ? `&media_type=${mediaTypes.join(',')}` : ''
   }`;
+}
+
+function fetchData(url, storage) {
+  return fetch(url).catch(err => setError(err, storage));
 }
