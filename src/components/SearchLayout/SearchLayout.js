@@ -16,13 +16,14 @@ export default function SearchLayout({
   filter,
   sort,
   error,
+  media,
 }) {
   const searchPositionClass = searchPosition === 'top' ? styles.form_top : styles.form_middle,
     searchClasses = [styles.form__wrapper, searchPositionClass].join(' ');
   return (
     <>
       <div class={searchClasses}>
-        {searchPosition === 'top' ? <Logo /> : ``}
+        {searchPosition === 'top' ? <Logo media={media} /> : ``}
         <form
           onsubmit={event =>
             searchByTerm(error, searchParams, data, mediaRequest, filter, sort, event)

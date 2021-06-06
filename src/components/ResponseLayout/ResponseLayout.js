@@ -6,34 +6,20 @@ import SearchLayout from '../SearchLayout';
 import FiltersByCategories from '../FiltersByCategories';
 import ResponseContent from './ResponseContent';
 
-export default function ResponseLayout({
-  searchPosition,
-  searchParams,
-  data,
-  sort,
-  filter,
-  mediaRequest,
-  error,
-}) {
+export default function ResponseLayout({ searchPosition, media }) {
   return (
     <>
-      <SearchLayout
-        searchPosition={searchPosition}
-        searchParams={searchParams}
-        data={data}
-        sort={sort}
-        filter={filter}
-        mediaRequest={mediaRequest}
-        error={error}
-      />
+      <SearchLayout searchPosition={searchPosition} {...media} media={media} />
       <div class={styles.response__layout}>
+        <br />
+        <FiltersByCategories noResults={noResults} />
         <br />
       </div>
     </>
   );
 }
 /*
-<FiltersByCategories noResults={noResults}/>
-        <br />
+
         <ResponseContent />
+
 */

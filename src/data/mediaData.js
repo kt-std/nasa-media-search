@@ -29,14 +29,14 @@ export function searchByTerm(error, searchParams, data, mediaRequest, filter, so
   console.log(data);*/
 }
 
-export function openHomePage(storage, e) {
+export function openHomePage(media, e) {
+  const { data, mediaRequest, searchParams, sort, filter } = media;
   e.preventDefault();
-  storage.requestMade = false;
-  storage.searchValue = null;
-  storage.mediaTypes = [];
-  resetState(storage);
+  mediaRequest.setRequestMade(false);
+  searchParams.setSearchValue(null);
+  searchParams.setMediaTypes([]);
+  resetState(data, mediaRequest, sort, filter);
   removeClass(`${styles.no_image__background}`, document.body);
-  renderApp();
 }
 
 export function updateMediaTypes(mediaTypesValue, setMediaTypesCB, input) {

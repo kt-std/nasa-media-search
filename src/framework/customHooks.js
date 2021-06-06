@@ -1,6 +1,31 @@
 import { useState, useEffect } from './hooks';
 import { requestMedia } from '../data/imagesAPI';
 
+export const useMedia = () => {
+  const searchParams = useSearchParams(),
+    data = useData(),
+    error = useError(),
+    sort = useSort(),
+    filter = useFilter(),
+    mediaRequest = useMediaRequest();
+
+  useEffect(() => {
+    async function performRequest() {
+      if (mediaRequest.isDataLoading) {
+        const { filters, totalHits, flattenedData, mediaTypes } = await requestMedia();
+        data.setTotalHits(totalHits);
+        data.setFlattenedData(flattenedData);
+        filter.setFilters(filters);
+        searchParams.setMediaTypes(mediaTypes);
+        mediaRequest.setIsDataLoading(false);
+        mediaRequest.setRequestMade(true);
+      }
+    }
+    performRequest();
+  }, [mediaRequest.isDataLoading]);
+  return { searchParams, data, error, sort, filter, mediaRequest };
+};
+
 export const useMediaRequest = () => {
   const [requestMade, setRequestMade] = useState(false);
   const [allRequestsMade, setAllRequestsMade] = useState(false);
