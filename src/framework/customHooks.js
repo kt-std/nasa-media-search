@@ -1,5 +1,5 @@
 import { useState, useEffect } from './hooks';
-import { updateData } from '../data/mediaData';
+import { updateData, sortMedia } from '../data/mediaData';
 import { requestMedia } from '../data/imagesAPI';
 
 export const useMedia = () => {
@@ -21,6 +21,7 @@ export const useMedia = () => {
     }
     performRequest();
   }, [mediaRequest.isDataLoading]);
+
   return { searchParams, data, error, sort, filter, mediaRequest };
 };
 

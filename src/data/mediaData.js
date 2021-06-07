@@ -58,12 +58,17 @@ export function updateMediaTypes(mediaTypesValue, setMediaTypesCB, input) {
   setMediaTypesCB(mediaTypesValue);
 }
 
-export function sortMedia(storage, e) {
-  const data = storage.filtersSelected ? storage.filteredData : storage.flattenedData,
+export function sortMedia(data, sort, e) {
+  const { mediaData, setCB } = data.filtersSelected
+      ? { mediaData: data.filteredData, setCB: data.setFilteredData }
+      : { mediaData: data.flattenedData, setCB: data.setFlattenedData },
     [option, direction] = e.target.value.split('_');
-  storage.sortingOption = e.target.value;
-  storage.sortingSet = true;
-  sortByDirection[direction](data, option);
+  sort.setSortingOption(e.target.value);
+  sort.setIsSortingSet(true);
+  // console.log(e.target.value, mediaData.map(i=>i[option]));
+  sortByDirection[direction](mediaData, option);
+  // console.log(mediaData.map(i=>i[option]));
+  setCB(mediaData);
 }
 
 export function filterItems(storage) {
@@ -103,19 +108,21 @@ export function selectFilter(storage, filter) {
   renderApp();
 }
 
-export function removeFilter(defaultStateParams, filter) {
-  const { value: filterName } = filter,
-    {} = defaultStateParams,
-    categorie = filter.getAttribute('data-categorie'),
-    deleteIndex = storage.selectedFiltersList.findIndex(
+export function removeFilter(data, filter, e) {
+  const filterName = e.target.value,
+    categorie = e.target.getAttribute('data-categorie'),
+    deleteIndex = filter.selectedFiltersList.findIndex(
       element => element.value === filterName && categorie === element.categorie,
     );
-  storage.focusOnFilter = null;
-  storage.selectedFiltersList.splice(deleteIndex, 1);
-  if (!storage.selectedFiltersList.length) {
-    storage.performFiltering = false;
-    storage.filtersSelected = false;
-    storage.totalHits = storage.flattenedData.length;
+  // storage.focusOnFilter = null;
+  filter.selectedFiltersList.splice(deleteIndex, 1);
+  //check value
+  filter.setSelectedFiltersList(filter.selectedFiltersList);
+  if (!filter.selectedFiltersList.length) {
+    filter.setPerformFiltering(false);
+    filter.setFiltersSelected(false);
+    // effect?
+    data.setTotalHits(data.flattenedData.length);
   }
 }
 
@@ -139,7 +146,6 @@ export function setError(errMessage, mediaRequest, error) {
 }
 
 export function changeBackground() {
-  //requestMadeCB(true);
   addClass(`${styles.no_image__background}`, document.body);
 }
 
@@ -162,9 +168,11 @@ export function isOptionNeeded(mediaTypes, option) {
 export const sortByDirection = {
   ascending: function (data, option) {
     data.sort((current, next) => (current[option] ? current[option] - next[option] : true));
+    // data.sort((current, next) => (current[option] - next[optino]));
   },
   descending: function (data, option) {
     data.sort((current, next) => (current[option] ? next[option] - current[option] : true));
+    // data.sort((current, next) => (next[option] - current[option]));
   },
 };
 

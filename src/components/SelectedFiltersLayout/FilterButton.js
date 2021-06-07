@@ -6,12 +6,11 @@ import { filterItems } from '../../data/mediaData';
 
 import styles from './style.css';
 
-export default function FilterButton() {
+export default function FilterButton({ data }) {
   return (
     <button
       onclick={event => {
-        filterItems(window.data);
-        render();
+        filterItems(data);
       }}
       class={styles.filter__button}
     >

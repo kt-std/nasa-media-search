@@ -1,24 +1,22 @@
 /** @jsx createElement */
 /** @jsxFrag createFragment */
 import { createElement, createFragment } from '../../framework';
-import render from '../../framework';
 import { removeFilter } from '../../data/mediaData';
 import styles from './style.css';
 
-export default function SelectedFilter({ filterSelected }) {
+export default function SelectedFilter({ data, filter, filterItem }) {
   return (
     <div class={styles.filter__selected_container}>
       <span class={styles.filter__selected}>
-        {filterSelected.categorie}: {filterSelected.value}
+        {filterItem.categorie}: {filterItem.value}
       </span>
       <button
         class={styles.remove__filter}
         onclick={event => {
-          removeFilter(window.data, event.target);
-          render();
+          removeFilter(data, filter, event);
         }}
-        value={filterSelected.value}
-        data-categorie={filterSelected.categorie}
+        value={filterItem.value}
+        data-categorie={filterItem.categorie}
       >
         x
       </button>
