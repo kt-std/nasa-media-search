@@ -7,7 +7,6 @@ import {
   setError,
 } from './mediaData';
 import renderApp from '../framework/renderer';
-
 import { replaceProtocolExtension, getItemByStringPattern } from '../utils';
 
 export async function requestMedia() {
@@ -15,11 +14,13 @@ export async function requestMedia() {
   const searchInputValue = document.getElementById('searchInput').value,
     mediaTypes = getMediaTypes();
   let requestURL = createRequestURL(searchInputValue, mediaTypes);
-  //respnseData=[];
 
-  const { responseData, error } = await getDataPages(requestURL),
-    dataReceived = await getAndPrepareMetadataForRendering(responseData, error);
-  return { ...dataReceived, mediaTypes };
+  const { responseData, error } = await getDataPages(requestURL);
+  if (!error.isError) {
+    const dataReceived = await getAndPrepareMetadataForRendering(responseData);
+    return { ...dataReceived, mediaTypes };
+  }
+  return { ...error, mediaTypes };
 }
 
 export async function requestCollectionAndMetadata(responseData) {
@@ -27,18 +28,28 @@ export async function requestCollectionAndMetadata(responseData) {
   const flattenedData = getResponseData(responseData);
   if (!flattenedData.length) noResults = true;
   const collectionData = await getCollectionData(flattenedData);
-  const metadataFromLinks = await getMetadata(flattenedData, collectionData);
-  return { metadataFromLinks, flattenedData, noResults };
+  if (!collectionData.isError) {
+    const metadataFromLinks = await getMetadata(flattenedData, collectionData);
+    return { data: metadataFromLinks, flattenedData, noResults };
+  }
+  return { data: collectionData, flattenedData, noResults };
 }
 
 async function getDataPages(requestURL) {
   let pagesCounter = 0,
     allRequestsMade = false,
     responseData = [],
-    error = { isError: false, errorMessage: '' };
+    error = { isError: false, errorText: '' };
   while (!allRequestsMade) {
     await fetch(requestURL)
-      .then(data => data.json())
+      .then(response => {
+        if (response.ok) {
+          return response.json();
+        } else {
+          allRequestsMade = true;
+          throw Error(response);
+        }
+      })
       .then(responseBody => {
         if (responseBody.collection.links) {
           const { nextPageLinkIndex, hasPage } = hasNextPage(responseBody.collection.links);
@@ -56,29 +67,27 @@ async function getDataPages(requestURL) {
         responseData = responseData.concat(responseBody.collection.items);
       })
       .catch(errMsg => {
-        error = { isError: true, errorMessage: errMsg };
-        //setError(err, mediaRequest, error);
+        allRequestsMade = true;
+        error = { isError: true, errorText: errMsg };
       });
   }
   return { responseData, error };
 }
 
-export async function getAndPrepareMetadataForRendering(responseData, error) {
-  if (!error.isError) {
-    const { metadataFromLinks, flattenedData, noResults } = await requestCollectionAndMetadata(
-      responseData,
-    );
-    changeBackground();
-    if (!noResults) {
-      const { filters, totalHits } = await getFiltersAndUpdate(flattenedData, metadataFromLinks);
-      return { filters, totalHits, flattenedData, noResults };
-    }
-    return { filters: {}, noResults, totalHits: null, flattenedData: [] };
+export async function getAndPrepareMetadataForRendering(responseData) {
+  const { data: metadataFromLinks, flattenedData, noResults } = await requestCollectionAndMetadata(
+    responseData,
+  );
+  changeBackground();
+  if (!noResults && !metadataFromLinks.isError) {
+    const { filters, totalHits } = await getFiltersAndUpdate(flattenedData, metadataFromLinks);
+    return { filters, noResults, totalHits, flattenedData, isError: false };
   }
+  return { filters: {}, noResults, totalHits: null, flattenedData: [], ...metadataFromLinks };
 }
 
 async function getCollectionData(flattenedData) {
-  const requests = flattenedData.map(dataItem => fetchData(dataItem.href));
+  const requests = await flattenedData.map(dataItem => fetch(dataItem.href));
   const data = await getAllPromisesData(requests);
   return data;
 }
@@ -87,7 +96,7 @@ function getMetadataPromisesFromCollectionList(flattenedData, collectionData) {
   return collectionData.map((collectionDataItem, i) => {
     const metadataLink = getItemByStringPattern('metadata.json', collectionDataItem);
     flattenedData[i].metadata = replaceProtocolExtension(metadataLink);
-    return fetchData(flattenedData[i].metadata);
+    return fetch(flattenedData[i].metadata);
   });
 }
 
@@ -97,9 +106,20 @@ function getMetadata(flattenedData, collectionData) {
 }
 
 function getAllPromisesData(data) {
-  return Promise.all(data).then(responseData =>
-    Promise.all(responseData.map(responseDataItem => responseDataItem.json())),
-  );
+  const error = { isError: true, errorText: 'Try to reload the page' };
+  return Promise.all(data)
+    .then(responseData =>
+      Promise.all(
+        responseData.map(responseDataItem => {
+          if (responseDataItem.ok) {
+            return responseDataItem.json();
+          } else {
+            throw Error(responseData);
+          }
+        }),
+      ).catch(err => error),
+    )
+    .catch(err => error);
 }
 
 function hasNextPage(linksList) {
@@ -114,11 +134,4 @@ function createRequestURL(searchInputValue, mediaTypes) {
   return `${API_URL}?q=${searchInputValue}${
     mediaTypes.length ? `&media_type=${mediaTypes.join(',')}` : ''
   }`;
-}
-
-export async function fetchData(url) {
-  return await fetch(url).catch(err => {
-    throw Error(err);
-  });
-  //setError(err, error)
 }

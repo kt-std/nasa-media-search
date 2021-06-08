@@ -10,8 +10,37 @@
   top: 0;
   left: 0;
 }
+.error {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+.error_text {
+  order: 3;
+  margin-top: 20px;
+  color: #1565c0;
+  font-size: 1.1em;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+.error:before {
+  content: '';
+  width: 200px;
+  height: 200px;
+  order: 2;
+  background: center url(../../../assets/houston.svg) no-repeat;
+  background-size: contain;
+}
+.error:after {
+  content: attr(data-text);
+  font-weight: bold;
+  order: 1;
+  color: #999;
+  margin: 20px 0;
+  font-size: 24px;
+}
 
-.loader:after {
+.text:after {
   content: 'Loading';
   font-size: 20px;
   position: relative;

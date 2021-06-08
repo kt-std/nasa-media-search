@@ -23,19 +23,17 @@ import renderApp from '../framework/renderer';
 
 export function searchByTerm(error, searchParams, data, mediaRequest, filter, sort, e) {
   e.preventDefault();
-  resetState(data, mediaRequest, sort, filter);
+  resetState(data, mediaRequest, sort, filter, error);
   mediaRequest.setIsDataLoading(true);
-  /* requestMedia(searchParams, data, mediaRequest, error, filter);
-  console.log(data);*/
 }
 
 export function openHomePage(media, e) {
-  const { data, mediaRequest, searchParams, sort, filter } = media;
+  const { data, mediaRequest, searchParams, sort, filter, error } = media;
   e.preventDefault();
   mediaRequest.setRequestMade(false);
   searchParams.setSearchValue(null);
   searchParams.setMediaTypes([]);
-  resetState(data, mediaRequest, sort, filter);
+  resetState(data, mediaRequest, sort, filter, error);
   removeClass(`${styles.no_image__background}`, document.body);
 }
 
@@ -65,9 +63,7 @@ export function sortMedia(data, sort, e) {
     [option, direction] = e.target.value.split('_');
   sort.setSortingOption(e.target.value);
   sort.setIsSortingSet(true);
-  // console.log(e.target.value, mediaData.map(i=>i[option]));
   sortByDirection[direction](mediaData, option);
-  // console.log(mediaData.map(i=>i[option]));
   setCB(mediaData);
 }
 
@@ -91,7 +87,6 @@ export function filterItems(data, filterData) {
   });
   data.setFilteredData(filteredData);
   data.setTotalHits(filteredData.length);
-  //storage.focusOnFilter = null;
 }
 
 export function selectFilter(data, filterData, e) {
@@ -99,13 +94,9 @@ export function selectFilter(data, filterData, e) {
     categorie = e.target.getAttribute('data-categorie');
   filterData.setFiltersSelected(true);
   if (!isFilterSelected(filterData.selectedFiltersList, filterValue, categorie)) {
-    // console.log(filterData.selectedFiltersList);
     filterData.selectedFiltersList.push({ value: filterValue, categorie });
-    // console.log(filterData.selectedFiltersList);
-    //storage.focusOnFilter = e.target.name;
   } else {
     removeFilter(data, filterData, e);
-    //storage.focusOnFilter = null;
   }
   filterData.setSelectedFiltersList(filterData.selectedFiltersList);
 }
@@ -116,21 +107,17 @@ export function removeFilter(data, filter, e) {
     deleteIndex = filter.selectedFiltersList.findIndex(
       element => element.value === filterName && categorie === element.categorie,
     );
-  // storage.focusOnFilter = null;
   filter.selectedFiltersList.splice(deleteIndex, 1);
-  //check value
   if (!filter.selectedFiltersList.length) {
     filter.setPerformFiltering(false);
-    data.setFilteredData([]);
     filter.setFiltersSelected(false);
-    // effect?
+    data.setFilteredData([]);
     data.setTotalHits(data.flattenedData.length);
   }
-
   filter.setSelectedFiltersList(filter.selectedFiltersList);
 }
 
-export function resetState(data, mediaRequest, sort, filter) {
+export function resetState(data, mediaRequest, sort, filter, error) {
   data.setTotalHits(null);
   data.setNoResults(false);
   data.setFilteredData([]);
@@ -138,6 +125,7 @@ export function resetState(data, mediaRequest, sort, filter) {
   mediaRequest.setAllRequestsMade(false);
   mediaRequest.setRequestMade(false);
   sort.setIsSortingSet(false);
+  error.setIsError(false);
   filter.setSelectedFiltersList([]);
   filter.setPerformFiltering(false);
   filter.setFiltersSelected(false);
@@ -209,10 +197,9 @@ function getConciseContentFromRespond(items) {
     };
   });
 }
-//remove async
+
 export function getFiltersAndUpdate(flattenedData, metadata) {
   getFiltersFromMetadata(metadata, flattenedData);
-  //mediaRequest.setIsDataLoading(false);
   const { filters } = getFiltersFromLists(flattenedData),
     totalHits = flattenedData.length;
   return { filters, totalHits };
@@ -234,7 +221,6 @@ function getFiltersDataFromMetadata(mediaMetadata, dataItem) {
 function getFiltersFromLists(flattenedData) {
   const filtersContainer = {};
   flattenedData.forEach(dataItem => {
-    // mediaTypes.forEach(mediaType => {
     FILTERS_BY_MEDIA_TYPE[dataItem.mediaType].forEach(key => {
       if (!filtersContainer[key]) {
         filtersContainer[key] = {};
@@ -242,16 +228,13 @@ function getFiltersFromLists(flattenedData) {
       if (dataItem[key]) {
         if (Array.isArray(dataItem[key])) {
           dataItem[key].forEach(keyword => {
-            //if (mediaType === dataItem.mediaType) {
             updateFilterValue(filtersContainer[key], keyword);
-            //}
           });
         } else {
           updateFilterValue(filtersContainer[key], dataItem[key]);
         }
       }
     });
-    //});
   });
   return { filters: filtersContainer };
 }

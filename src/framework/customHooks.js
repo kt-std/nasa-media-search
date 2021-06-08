@@ -14,9 +14,14 @@ export const useMedia = () => {
     async function performRequest() {
       if (mediaRequest.isDataLoading) {
         const dataReceived = await requestMedia();
-        updateData(dataReceived, data, filter, searchParams);
+        if (!dataReceived.isError) {
+          updateData(dataReceived, data, filter, searchParams);
+          mediaRequest.setRequestMade(true);
+        } else {
+          error.setIsError(true);
+          error.setErrorMessage(dataReceived.errorText);
+        }
         mediaRequest.setIsDataLoading(false);
-        mediaRequest.setRequestMade(true);
       }
     }
     performRequest();
