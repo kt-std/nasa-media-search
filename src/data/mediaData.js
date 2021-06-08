@@ -133,6 +133,8 @@ export function removeFilter(data, filter, e) {
 export function resetState(data, mediaRequest, sort, filter) {
   data.setTotalHits(null);
   data.setNoResults(false);
+  data.setFilteredData([]);
+  data.setFlattenedData([]);
   mediaRequest.setAllRequestsMade(false);
   mediaRequest.setRequestMade(false);
   sort.setIsSortingSet(false);
