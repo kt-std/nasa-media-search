@@ -1,10 +1,10 @@
 /** @jsx createElement */
 /** @jsxFrag createFragment */
 import { createElement, createFragment } from '../../framework';
-import styles from './style.css';
 import { isFilterSelected, selectFilter } from '../../data/mediaData.js';
+import styles from './style.css';
 
-export default function FilterItem({ filterName, filterCounter, categorie }) {
+export default function FilterItem({ data, filter, filterName, filterCounter, categorie }) {
   return (
     <>
       <label class={styles.filter__label}>
@@ -13,8 +13,8 @@ export default function FilterItem({ filterName, filterCounter, categorie }) {
           name={filterName}
           data-categorie={categorie}
           type={'checkbox'}
-          checked={isFilterSelected(window.data.selectedFiltersList, filterName, categorie)}
-          onchange={event => selectFilter(window.data, event.target)}
+          checked={isFilterSelected(filter.selectedFiltersList, filterName, categorie)}
+          onchange={e => selectFilter(data, filter, e)}
         />
         <span class={styles.text}>{filterName} </span>
         <span class={styles.filter__counter}>({filterCounter})</span>

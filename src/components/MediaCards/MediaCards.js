@@ -5,7 +5,7 @@ import styles from './style.css';
 import Card from './Card';
 
 export default function MediaCards({ filter, data }) {
-  const mediaData = !filter.performFiltering ? data.flattenedData : data.filteredData;
+  const mediaData = !data.filteredData.length ? data.flattenedData : data.filteredData;
   return (
     <>
       {mediaData.map(dataItem => (

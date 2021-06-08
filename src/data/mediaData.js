@@ -71,41 +71,43 @@ export function sortMedia(data, sort, e) {
   setCB(mediaData);
 }
 
-export function filterItems(storage) {
-  storage.performFiltering = true;
-  storage.filteredData = [];
-  storage.selectedFiltersList.forEach(filter => {
-    const categorie = filter.categorie;
-    storage.flattenedData.forEach(dataItem => {
-      if (storage.filteredData.indexOf(dataItem) === -1 && dataItem[categorie]) {
+export function filterItems(data, filterData) {
+  const filteredData = [];
+  filterData.selectedFiltersList.forEach(filter => {
+    const { categorie } = filter;
+    data.flattenedData.forEach(dataItem => {
+      if (filteredData.indexOf(dataItem) === -1 && dataItem[categorie]) {
         if (Array.isArray(dataItem[categorie])) {
           if (isElementInArray(dataItem[categorie], filter.value)) {
-            storage.filteredData.push(dataItem);
+            filteredData.push(dataItem);
           }
         } else {
           if (dataItem[categorie].toUpperCase() === filter.value) {
-            storage.filteredData.push(dataItem);
+            filteredData.push(dataItem);
           }
         }
       }
     });
   });
-  storage.focusOnFilter = null;
-  storage.totalHits = storage.filteredData.length;
+  data.setFilteredData(filteredData);
+  data.setTotalHits(filteredData.length);
+  //storage.focusOnFilter = null;
 }
 
-export function selectFilter(storage, filter) {
-  const { value } = filter,
-    categorie = filter.getAttribute('data-categorie');
-  storage.filtersSelected = true;
-  if (!isFilterSelected(storage.selectedFiltersList, value, categorie)) {
-    storage.selectedFiltersList.push({ value, categorie });
-    storage.focusOnFilter = filter.name;
+export function selectFilter(data, filterData, e) {
+  const filterValue = e.target.value,
+    categorie = e.target.getAttribute('data-categorie');
+  filterData.setFiltersSelected(true);
+  if (!isFilterSelected(filterData.selectedFiltersList, filterValue, categorie)) {
+    // console.log(filterData.selectedFiltersList);
+    filterData.selectedFiltersList.push({ value: filterValue, categorie });
+    // console.log(filterData.selectedFiltersList);
+    //storage.focusOnFilter = e.target.name;
   } else {
-    removeFilter(storage, filter);
-    storage.focusOnFilter = null;
+    removeFilter(data, filterData, e);
+    //storage.focusOnFilter = null;
   }
-  renderApp();
+  filterData.setSelectedFiltersList(filterData.selectedFiltersList);
 }
 
 export function removeFilter(data, filter, e) {
@@ -117,13 +119,15 @@ export function removeFilter(data, filter, e) {
   // storage.focusOnFilter = null;
   filter.selectedFiltersList.splice(deleteIndex, 1);
   //check value
-  filter.setSelectedFiltersList(filter.selectedFiltersList);
   if (!filter.selectedFiltersList.length) {
     filter.setPerformFiltering(false);
+    data.setFilteredData([]);
     filter.setFiltersSelected(false);
     // effect?
     data.setTotalHits(data.flattenedData.length);
   }
+
+  filter.setSelectedFiltersList(filter.selectedFiltersList);
 }
 
 export function resetState(data, mediaRequest, sort, filter) {
@@ -168,11 +172,9 @@ export function isOptionNeeded(mediaTypes, option) {
 export const sortByDirection = {
   ascending: function (data, option) {
     data.sort((current, next) => (current[option] ? current[option] - next[option] : true));
-    // data.sort((current, next) => (current[option] - next[optino]));
   },
   descending: function (data, option) {
     data.sort((current, next) => (current[option] ? next[option] - current[option] : true));
-    // data.sort((current, next) => (next[option] - current[option]));
   },
 };
 

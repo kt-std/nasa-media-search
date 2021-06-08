@@ -29,9 +29,3 @@ export default function ResponseContent({ media }) {
     <NoResults />
   );
 }
-
-/*
- 
-      
-
-*/
