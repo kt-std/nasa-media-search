@@ -21,7 +21,7 @@ import { requestMedia } from './imagesAPI';
 import styles from '/style.css';
 import renderApp from '../framework/renderer';
 
-export function searchByTerm(error, searchParams, data, mediaRequest, filter, sort, e) {
+export function searchByTerm(error, data, mediaRequest, filter, sort, e) {
   e.preventDefault();
   resetState(data, mediaRequest, sort, filter, error);
   mediaRequest.setIsDataLoading(true);
@@ -181,6 +181,7 @@ function getConciseContentFromRespond(items) {
       center,
       media_type,
       title,
+      description,
       secondary_creator = null,
       nasa_id,
     } = data[0];
@@ -192,6 +193,7 @@ function getConciseContentFromRespond(items) {
       center,
       previewImage: removeSpacesFromLink(previewImage),
       href,
+      description,
       mediaType: media_type,
       creator: getCreatorsList(secondary_creator),
     };
@@ -342,4 +344,12 @@ function splitStringWithDifferentSeparator(stringToSplit) {
   } else {
     return stringToSplit.split('/');
   }
+}
+
+export function darkenBackground() {
+  document.getElementById('app-root').classList.add(`${styles.cover}`);
+}
+
+export function lightenBackground() {
+  document.getElementById('app-root').classList.remove(`${styles.cover}`);
 }

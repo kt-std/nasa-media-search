@@ -53,7 +53,7 @@ async function getDataPages(requestURL) {
       .then(responseBody => {
         if (responseBody.collection.links) {
           const { nextPageLinkIndex, hasPage } = hasNextPage(responseBody.collection.links);
-          if (pagesCounter === 2 || !hasPage) {
+          if (pagesCounter === 1 || !hasPage) {
             allRequestsMade = true;
           } else {
             requestURL = replaceProtocolExtension(

@@ -46,3 +46,15 @@ body.no_image__background {
 .text::-webkit-scrollbar {
   display: none;
 }
+/*
+.cover:after{
+  content: '';
+  position: fixed;
+  display: flex;
+  z-index: 2;
+  top: 0;
+  left: 0;
+  background-color: rgba(0,0,0,.5);
+  width: 100vw;
+  height: 100vh;
+}*/

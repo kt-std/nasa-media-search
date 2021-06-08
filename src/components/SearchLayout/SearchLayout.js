@@ -25,9 +25,7 @@ export default function SearchLayout({
       <div class={searchClasses}>
         {searchPosition === 'top' ? <Logo media={media} /> : ``}
         <form
-          onsubmit={event =>
-            searchByTerm(error, searchParams, data, mediaRequest, filter, sort, event)
-          }
+          onsubmit={event => searchByTerm(error, data, mediaRequest, filter, sort, event)}
           id="searchForm"
           class={styles.form}
         >
@@ -41,10 +39,7 @@ export default function SearchLayout({
               setSearchValue={searchParams.setSearchValue}
             />
           </div>
-          <SearchButton
-            mediaTypes={searchParams.mediaTypes}
-            searchValue={searchParams.searchValue}
-          />
+          <SearchButton mediaTypes={searchParams.mediaTypes} />
         </form>
       </div>
     </>

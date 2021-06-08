@@ -3,9 +3,9 @@
 import { createElement, createFragment } from '../../framework';
 import styles from './style.css';
 
-export default function SearchButton({ mediaTypes, searchValue }) {
+export default function SearchButton({ mediaTypes }) {
   return (
-    <button class={styles.search__button} disabled={!mediaTypes.length || !searchValue}>
+    <button class={styles.search__button} disabled={!mediaTypes.length}>
       search
     </button>
   );

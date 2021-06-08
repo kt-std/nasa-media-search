@@ -7,10 +7,10 @@ import Card from './Card';
 export default function MediaCards({ filter, data }) {
   const mediaData = !data.filteredData.length ? data.flattenedData : data.filteredData;
   return (
-    <>
+    <div class={styles.cards_wrapper}>
       {mediaData.map(dataItem => (
         <Card dataItem={dataItem} />
       ))}
-    </>
+    </div>
   );
 }

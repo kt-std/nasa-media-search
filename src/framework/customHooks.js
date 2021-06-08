@@ -75,9 +75,6 @@ export const useData = requestMade => {
 export const useSort = () => {
   const [isSortingSet, setIsSortingSet] = useState(false);
   const [sortingOption, setSortingOption] = useState(null);
-
-  //useEffect([sortingOption]) when isSortingSet => sort media
-
   return { isSortingSet, setIsSortingSet, sortingOption, setSortingOption };
 };
 
@@ -86,9 +83,6 @@ export const useFilter = () => {
   const [selectedFiltersList, setSelectedFiltersList] = useState([]);
   const [filtersSelected, setFiltersSelected] = useState(false);
   const [performFiltering, setPerformFiltering] = useState(false);
-
-  //useEffect([perfomFiltering]) when filtersSelected.length => filter media
-
   return {
     filters,
     setFilters,

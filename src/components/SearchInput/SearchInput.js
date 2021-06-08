@@ -9,6 +9,7 @@ export default function SearchInput({ searchValue, setSearchValue }) {
     <input
       type="text"
       id="searchInput"
+      required
       placeholder='Search for ... (e.g. "M101")'
       class={styles.search__input}
       onchange={event => {
