@@ -1,21 +1,27 @@
 /** @jsx createElement */
 /** @jsxFrag createFragment */
-import { createElement, createFragment } from '../../framework/element';
+import { createElement, createFragment } from '../../framework';
 import styles from './style.css';
 import SearchLayout from '../SearchLayout';
 import FiltersByCategories from '../FiltersByCategories';
 import ResponseContent from './ResponseContent';
 
-export default function ResponseLayout({ searchPosition }) {
+export default function ResponseLayout({ searchPosition, media }) {
   return (
     <>
-      <SearchLayout searchPosition={searchPosition} />
+      <SearchLayout searchPosition={searchPosition} {...media} media={media} />
       <div class={styles.response__layout}>
         <br />
-        <FiltersByCategories />
+        <FiltersByCategories data={media.data} filter={media.filter} />
         <br />
-        <ResponseContent />
+        <ResponseContent media={media} />
       </div>
     </>
   );
 }
+/*
+
+        
+
+*/
+//TODO: fix and add noResults isError

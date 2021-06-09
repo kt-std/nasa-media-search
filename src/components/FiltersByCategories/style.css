@@ -16,6 +16,10 @@
   position: relative;
   height: 25px;
 }
+.text::-webkit-scrollbar,
+.filter__label::-webkit-scrollbar {
+  display: none;
+}
 
 .text {
   text-overflow: ellipsis;

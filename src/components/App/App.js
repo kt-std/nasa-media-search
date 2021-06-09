@@ -1,21 +1,24 @@
 /** @jsx createElement */
 /** @jsxFrag createFragment */
-import { createElement, createFragment } from '../../framework/element';
+import { createElement, createFragment } from '../../framework';
 import ResponseLayout from '../ResponseLayout';
 import Loader from '../Loader';
 import SearchLayout from '../SearchLayout';
+import { requestMedia } from '../../data/imagesAPI';
+import { useMedia } from '../../framework/customHooks';
 
 export default function App() {
+  const media = useMedia();
   return (
     <>
-      {window.data.requestMade ? (
-        <ResponseLayout searchPosition={'top'} />
-      ) : window.data.isDataLoading ? (
+      {media.mediaRequest.requestMade ? (
+        <ResponseLayout searchPosition={'top'} media={media} />
+      ) : media.mediaRequest.isDataLoading ? (
         <Loader text={''} />
-      ) : window.data.isError ? (
-        <Loader text={window.data.errorMessage} />
+      ) : media.error.isError ? (
+        <Loader text={media.error.errorMessage} />
       ) : (
-        <SearchLayout searchPosition={'middle'} />
+        <SearchLayout searchPosition={'middle'} {...media} />
       )}
     </>
   );

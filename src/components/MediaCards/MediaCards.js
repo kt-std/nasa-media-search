@@ -1,16 +1,16 @@
 /** @jsx createElement */
 /** @jsxFrag createFragment */
-import { createElement, createFragment } from '../../framework/element';
+import { createElement, createFragment } from '../../framework';
 import styles from './style.css';
 import Card from './Card';
 
-export default function MediaCards({ storage }) {
-  const data = !storage.performFiltering ? storage.flattenedData : storage.filteredData;
+export default function MediaCards({ filter, data }) {
+  const mediaData = !data.filteredData.length ? data.flattenedData : data.filteredData;
   return (
-    <>
-      {data.map(dataItem => (
-        <Card dataItem={dataItem} />
+    <div class={styles.cards_wrapper}>
+      {mediaData.map((dataItem, i) => (
+        <Card dataItem={dataItem} index={i} />
       ))}
-    </>
+    </div>
   );
 }

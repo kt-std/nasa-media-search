@@ -1,21 +1,21 @@
 /** @jsx createElement */
 /** @jsxFrag createFragment */
-import { createElement, createFragment } from '../../framework/element';
-import renderApp from '../../framework/renderer';
+import { createElement, createFragment } from '../../framework';
+import render from '../../framework';
 import styles from './style.css';
 
-export default function SearchInput({ storage }) {
+export default function SearchInput({ searchValue, setSearchValue }) {
   return (
     <input
       type="text"
       id="searchInput"
+      required
       placeholder='Search for ... (e.g. "M101")'
       class={styles.search__input}
       onchange={event => {
-        window.data.searchValue = event.target.value;
-        renderApp();
+        setSearchValue(event.target.value);
       }}
-      value={storage.searchValue !== null ? storage.searchValue : ``}
+      value={searchValue !== null ? searchValue : ``}
     />
   );
 }
