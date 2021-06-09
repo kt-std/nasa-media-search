@@ -63,7 +63,7 @@ export function sortMedia(data, sort, e) {
     [option, direction] = e.target.value.split('_');
   sort.setSortingOption(e.target.value);
   sort.setIsSortingSet(true);
-  sortByDirection[direction](mediaData, option);
+  sortByDirection(mediaData, option, direction);
   setCB(mediaData);
 }
 
@@ -159,14 +159,17 @@ export function isOptionNeeded(mediaTypes, option) {
   });
 }
 
-export const sortByDirection = {
-  ascending: function (data, option) {
-    data.sort((current, next) => (current[option] ? current[option] - next[option] : true));
-  },
-  descending: function (data, option) {
-    data.sort((current, next) => (current[option] ? next[option] - current[option] : true));
-  },
-};
+export function sortByDirection(data, option, direction) {
+  data.sort((a, b) => {
+    const isA = typeof a[option] !== 'undefined',
+      isB = typeof b[option] !== 'undefined';
+    if (direction === 'ascending') {
+      return isB - isA || (isA === true && a[option] - b[option]) || 0;
+    } else {
+      return isB - isA || (isA === true && b[option] - a[option]) || 0;
+    }
+  });
+}
 
 export function getResponseData(responseData) {
   return getConciseContentFromRespond(responseData);
@@ -344,12 +347,4 @@ function splitStringWithDifferentSeparator(stringToSplit) {
   } else {
     return stringToSplit.split('/');
   }
-}
-
-export function darkenBackground() {
-  document.getElementById('app-root').classList.add(`${styles.cover}`);
-}
-
-export function lightenBackground() {
-  document.getElementById('app-root').classList.remove(`${styles.cover}`);
 }

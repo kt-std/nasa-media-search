@@ -94,8 +94,10 @@ async function getCollectionData(flattenedData) {
 
 function getMetadataPromisesFromCollectionList(flattenedData, collectionData) {
   return collectionData.map((collectionDataItem, i) => {
-    const metadataLink = getItemByStringPattern('metadata.json', collectionDataItem);
+    const metadataLink = getItemByStringPattern('metadata.json', collectionDataItem),
+      downloadLink = getItemByStringPattern('~orig', collectionDataItem);
     flattenedData[i].metadata = replaceProtocolExtension(metadataLink);
+    flattenedData[i].download = replaceProtocolExtension(downloadLink);
     return fetch(flattenedData[i].metadata);
   });
 }
