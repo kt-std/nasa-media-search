@@ -2,7 +2,7 @@
 /** @jsxFrag createFragment */
 import { createElement, createFragment } from '../../framework';
 import styles from './style.css';
-import { darkenBackground, lightenBackground } from '../../data/mediaData';
+import { showDescription } from '../../data/mediaData';
 
 //TODO: fix styling problems style = [object Object]
 
@@ -17,20 +17,7 @@ export default function Card({ dataItem, index }) {
     backgroundURL =
       dataItem.previewImage !== null ? dataItem.previewImage : require('../../../assets/audio.svg');
   return (
-    <div
-      class={styles.item_container}
-      onclick={e => {
-        Array.from(document.querySelectorAll(`.${styles.visible}`)).forEach(item =>
-          item.classList.contains(`${styles.visible}`) &&
-          item.id !== `description_${e.target.getAttribute('data-index')}`
-            ? item.classList.remove(`${styles.visible}`)
-            : '',
-        );
-        document
-          .getElementById(`description_${e.target.getAttribute('data-index')}`)
-          .classList.toggle(`${styles.visible}`);
-      }}
-    >
+    <div class={styles.item_container}>
       <div
         class={cardClass}
         id={dataItem.id}
@@ -38,6 +25,14 @@ export default function Card({ dataItem, index }) {
         data-background={dataItem.previewImage}
         data-title={dataItem.title}
         data-index={index}
+        tabindex="0"
+        onclick={e => showDescription(styles.visible, e)}
+        onkeypress={e => {
+          if (e.key === ' ' || e.key === 'Enter') {
+            e.preventDefault();
+            showDescription(styles.visible, e);
+          }
+        }}
       ></div>
       <div class={styles.description} id={`description_${index}`}>
         <h4 class={styles.heading}>{dataItem.title}</h4>

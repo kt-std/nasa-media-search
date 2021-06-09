@@ -348,3 +348,15 @@ function splitStringWithDifferentSeparator(stringToSplit) {
     return stringToSplit.split('/');
   }
 }
+
+export function showDescription(style, e) {
+  Array.from(document.querySelectorAll(`.${style}`)).forEach(item =>
+    item.classList.contains(`${style}`) &&
+    item.id !== `description_${e.target.getAttribute('data-index')}`
+      ? item.classList.remove(`${style}`)
+      : '',
+  );
+  document
+    .getElementById(`description_${e.target.getAttribute('data-index')}`)
+    .classList.toggle(`${style}`);
+}
