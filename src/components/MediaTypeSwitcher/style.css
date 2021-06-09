@@ -2,6 +2,7 @@
   padding: var(--padding);
   box-sizing: border-box;
   height: 100%;
+  cursor: pointer;
 }
 .button {
   top: 0;
@@ -21,7 +22,9 @@
   visibility: visible;
 }
 
+.mediaType ~ label,
 .mediaType {
+  cursor: pointer;
 }
 
 .wrapper {

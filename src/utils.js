@@ -6,6 +6,8 @@ export function isElementInArray(data, element) {
   return data.some(dataItem => dataItem.toUpperCase() === element);
 }
 
+export const isFunction = func => typeof func === 'function';
+
 export function getNumberFromString(value) {
   return value ? parseInt(value) : undefined;
 }
@@ -20,10 +22,6 @@ export function removeSpacesFromLink(link) {
 
 export function replaceProtocolExtension(link) {
   return link.replace(/(http)/gm, 'https');
-}
-
-export function fetchData(url, storage) {
-  return fetch(url).catch(err => setError(err, storage));
 }
 
 export function flat(array) {

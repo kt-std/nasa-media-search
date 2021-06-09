@@ -10,6 +10,8 @@
   --main-background: #e0e0e0;
   --extra-light: #f8f8f8;
   --form-padding: 5px;
+  --btn-color: #1976d2;
+  --btn-hover: #2196f3;
 }
 
 * {
@@ -45,4 +47,16 @@ body.no_image__background {
 .card__item:before::-webkit-scrollbar,
 .text::-webkit-scrollbar {
   display: none;
+}
+
+.cover:after {
+  content: '';
+  position: fixed;
+  display: flex;
+  z-index: 2;
+  top: 0;
+  left: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  width: 100vw;
+  height: 100vh;
 }

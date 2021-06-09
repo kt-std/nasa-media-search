@@ -1,24 +1,27 @@
 /** @jsx createElement */
 /** @jsxFrag createFragment */
-import { createElement, createFragment } from '../../framework/element';
+import { createElement, createFragment } from '../../framework';
 import { sortMedia } from '../../data/mediaData';
-import renderApp from '../../framework/renderer';
+import render from '../../framework';
 import styles from './style.css';
 import SortOptions from './SortOptions';
 
-export default function SortSelect() {
+export default function SortSelect({ data, sort, mediaTypes }) {
   return (
     <label>
       Sort by:
       <select
         name="mediaSort"
         id="mediaSort"
-        onchange={event => {
-          sortMedia(window.data, event);
-          renderApp();
+        onchange={e => {
+          sortMedia(data, sort, e);
         }}
       >
-        <SortOptions storage={window.data} />
+        <SortOptions
+          isSortingSet={sort.isSortingSet}
+          sortingOption={sort.sortingOption}
+          mediaTypes={mediaTypes}
+        />
       </select>
     </label>
   );

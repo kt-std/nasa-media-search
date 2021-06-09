@@ -3,46 +3,58 @@ import {
   setSelectedMediaTypes,
   getFiltersAndUpdate,
   getResponseData,
+  changeBackground,
   setError,
 } from './mediaData';
 import renderApp from '../framework/renderer';
+import { replaceProtocolExtension, getItemByStringPattern } from '../utils';
 
-import { replaceProtocolExtension, fetchData, getItemByStringPattern } from '../utils';
-
-export async function requestMedia(storage) {
+export async function requestMedia() {
+  const data = {};
   const searchInputValue = document.getElementById('searchInput').value,
     mediaTypes = getMediaTypes();
   let requestURL = createRequestURL(searchInputValue, mediaTypes);
-  storage.mediaTypes = setSelectedMediaTypes(mediaTypes);
-  storage.searchValue = searchInputValue;
-  storage.responseData = [];
 
-  renderApp();
-
-  await getDataPages(storage, requestURL);
-  await getAndPrepareMetadataForRendering(storage);
-}
-
-export async function requestCollectionAndMetadata(storage) {
-  if (!storage.isError) {
-    storage.flattenedData = getResponseData(storage);
-    if (!storage.flattenedData.length) storage.noResults = true;
-    const collectionData = await getCollectionData(storage.flattenedData, storage),
-      metadataFromLinks = await getMetadata(storage.flattenedData, collectionData, storage);
-    return metadataFromLinks;
+  const { responseData, error } = await getDataPages(requestURL);
+  if (!error.isError) {
+    const dataReceived = await getAndPrepareMetadataForRendering(responseData);
+    return { ...dataReceived, mediaTypes };
   }
+  return { ...error, mediaTypes };
 }
 
-async function getDataPages(storage, requestURL) {
-  let pagesCounter = 0;
-  while (!storage.allRequestsMade) {
+export async function requestCollectionAndMetadata(responseData) {
+  let noResults = false;
+  const flattenedData = getResponseData(responseData);
+  if (!flattenedData.length) noResults = true;
+  const collectionData = await getCollectionData(flattenedData);
+  if (!collectionData.isError) {
+    const metadataFromLinks = await getMetadata(flattenedData, collectionData);
+    return { data: metadataFromLinks, flattenedData, noResults };
+  }
+  return { data: collectionData, flattenedData, noResults };
+}
+
+async function getDataPages(requestURL) {
+  let pagesCounter = 0,
+    allRequestsMade = false,
+    responseData = [],
+    error = { isError: false, errorText: '' };
+  while (!allRequestsMade) {
     await fetch(requestURL)
-      .then(data => data.json())
+      .then(response => {
+        if (response.ok) {
+          return response.json();
+        } else {
+          allRequestsMade = true;
+          throw Error(response);
+        }
+      })
       .then(responseBody => {
         if (responseBody.collection.links) {
           const { nextPageLinkIndex, hasPage } = hasNextPage(responseBody.collection.links);
-          if (pagesCounter === 2 || !hasPage) {
-            storage.allRequestsMade = true;
+          if (pagesCounter === 1 || !hasPage) {
+            allRequestsMade = true;
           } else {
             requestURL = replaceProtocolExtension(
               responseBody.collection.links[nextPageLinkIndex].href,
@@ -50,48 +62,66 @@ async function getDataPages(storage, requestURL) {
             pagesCounter++;
           }
         } else {
-          storage.allRequestsMade = true;
+          allRequestsMade = true;
         }
-        storage.responseData = storage.responseData.concat(responseBody.collection.items);
+        responseData = responseData.concat(responseBody.collection.items);
       })
-      .catch(err => {
-        setError(err, storage);
+      .catch(errMsg => {
+        allRequestsMade = true;
+        error = { isError: true, errorText: errMsg };
       });
   }
+  return { responseData, error };
 }
 
-export async function getAndPrepareMetadataForRendering(storage) {
-  const metadataFromLinks = await requestCollectionAndMetadata(storage);
-  await getFiltersAndUpdate(storage, metadataFromLinks);
-  renderApp();
+export async function getAndPrepareMetadataForRendering(responseData) {
+  const { data: metadataFromLinks, flattenedData, noResults } = await requestCollectionAndMetadata(
+    responseData,
+  );
+  changeBackground();
+  if (!noResults && !metadataFromLinks.isError) {
+    const { filters, totalHits } = await getFiltersAndUpdate(flattenedData, metadataFromLinks);
+    return { filters, noResults, totalHits, flattenedData, isError: false };
+  }
+  return { filters: {}, noResults, totalHits: null, flattenedData: [], ...metadataFromLinks };
 }
 
-function getCollectionData(data, storage) {
-  const requests = data.map(dataItem => fetchData(dataItem.href, storage));
-  return getAllPromisesData(requests, storage);
+async function getCollectionData(flattenedData) {
+  const requests = await flattenedData.map(dataItem => fetch(dataItem.href));
+  const data = await getAllPromisesData(requests);
+  return data;
 }
 
-function getMetadataPromisesFromCollectionList(data, collectionData, storage) {
+function getMetadataPromisesFromCollectionList(flattenedData, collectionData) {
   return collectionData.map((collectionDataItem, i) => {
-    const metadataLink = getItemByStringPattern('metadata.json', collectionDataItem);
-    data[i].metadata = replaceProtocolExtension(metadataLink);
-    return fetchData(data[i].metadata, storage);
+    const metadataLink = getItemByStringPattern('metadata.json', collectionDataItem),
+      downloadLink = getItemByStringPattern('~orig', collectionDataItem);
+    flattenedData[i].metadata = replaceProtocolExtension(metadataLink);
+    flattenedData[i].download = replaceProtocolExtension(downloadLink);
+    return fetch(flattenedData[i].metadata);
   });
 }
 
-function getMetadata(data, collectionData, storage) {
-  const metadataFetchedLinks = getMetadataPromisesFromCollectionList(data, collectionData, storage);
-  return getAllPromisesData(metadataFetchedLinks, storage);
+function getMetadata(flattenedData, collectionData) {
+  const metadataFetchedLinks = getMetadataPromisesFromCollectionList(flattenedData, collectionData);
+  return getAllPromisesData(metadataFetchedLinks);
 }
 
-function getAllPromisesData(data, storage) {
+function getAllPromisesData(data) {
+  const error = { isError: true, errorText: 'Try to reload the page' };
   return Promise.all(data)
     .then(responseData =>
-      Promise.all(responseData.map(responseDataItem => responseDataItem.json())),
+      Promise.all(
+        responseData.map(responseDataItem => {
+          if (responseDataItem.ok) {
+            return responseDataItem.json();
+          } else {
+            throw Error(responseData);
+          }
+        }),
+      ).catch(err => error),
     )
-    .catch(err => {
-      setError(err, storage);
-    });
+    .catch(err => error);
 }
 
 function hasNextPage(linksList) {

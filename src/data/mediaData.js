@@ -21,96 +21,130 @@ import { requestMedia } from './imagesAPI';
 import styles from '/style.css';
 import renderApp from '../framework/renderer';
 
-export function searchByTerm(storage, e) {
+export function searchByTerm(error, data, mediaRequest, filter, sort, e) {
   e.preventDefault();
-  resetState(storage);
-  storage.isDataLoading = true;
-  requestMedia(storage);
+  resetState(data, mediaRequest, sort, filter, error);
+  mediaRequest.setIsDataLoading(true);
 }
 
-export function openHomePage(storage, e) {
+export function openHomePage(media, e) {
+  const { data, mediaRequest, searchParams, sort, filter, error } = media;
   e.preventDefault();
-  storage.requestMade = false;
-  storage.searchValue = null;
-  storage.mediaTypes = [];
-  resetState(storage);
+  mediaRequest.setRequestMade(false);
+  searchParams.setSearchValue(null);
+  searchParams.setMediaTypes([]);
+  resetState(data, mediaRequest, sort, filter, error);
   removeClass(`${styles.no_image__background}`, document.body);
-  renderApp();
 }
 
-export function updateMediaTypes(storage, input) {
-  const inputIndex = storage.mediaTypes.indexOf(input.value);
+export function updateData(dataParams, data, filter, searchParams) {
+  const { filters, totalHits, flattenedData, mediaTypes, noResults } = dataParams;
+  data.setTotalHits(totalHits);
+  data.setNoResults(noResults);
+  data.setFlattenedData(flattenedData);
+  filter.setFilters(filters);
+  searchParams.setMediaTypes(mediaTypes);
+}
+
+export function updateMediaTypes(mediaTypesValue, setMediaTypesCB, input) {
+  const inputIndex = mediaTypesValue.indexOf(input.value);
   if (inputIndex === -1) {
-    storage.mediaTypes.push(input.value);
+    mediaTypesValue.push(input.value);
   } else {
-    storage.mediaTypes.splice(inputIndex, 1);
+    mediaTypesValue.splice(inputIndex, 1);
   }
-  renderApp();
+  setMediaTypesCB(mediaTypesValue);
 }
 
-export function sortMedia(storage, e) {
-  const data = storage.filtersSelected ? storage.filteredData : storage.flattenedData,
+export function sortMedia(data, sort, e) {
+  const { mediaData, setCB } = data.filtersSelected
+      ? { mediaData: data.filteredData, setCB: data.setFilteredData }
+      : { mediaData: data.flattenedData, setCB: data.setFlattenedData },
     [option, direction] = e.target.value.split('_');
-  storage.sortingOption = e.target.value;
-  storage.sortingSet = true;
-  sortByDirection[direction](data, option);
+  sort.setSortingOption(e.target.value);
+  sort.setIsSortingSet(true);
+  sortByDirection(mediaData, option, direction);
+  setCB(mediaData);
 }
 
-export function filterItems(storage) {
-  storage.performFiltering = true;
-  storage.filteredData = [];
-  storage.selectedFiltersList.forEach(filter => {
-    const categorie = filter.categorie;
-    storage.flattenedData.forEach(dataItem => {
-      if (storage.filteredData.indexOf(dataItem) === -1 && dataItem[categorie]) {
+export function filterItems(data, filterData) {
+  const filteredData = [];
+  filterData.selectedFiltersList.forEach(filter => {
+    const { categorie } = filter;
+    data.flattenedData.forEach(dataItem => {
+      if (filteredData.indexOf(dataItem) === -1 && dataItem[categorie]) {
         if (Array.isArray(dataItem[categorie])) {
           if (isElementInArray(dataItem[categorie], filter.value)) {
-            storage.filteredData.push(dataItem);
+            filteredData.push(dataItem);
           }
         } else {
           if (dataItem[categorie].toUpperCase() === filter.value) {
-            storage.filteredData.push(dataItem);
+            filteredData.push(dataItem);
           }
         }
       }
     });
   });
-  storage.focusOnFilter = null;
-  storage.totalHits = storage.filteredData.length;
+  data.setFilteredData(filteredData);
+  data.setTotalHits(filteredData.length);
 }
 
-export function selectFilter(storage, filter) {
-  const { value } = filter,
-    categorie = filter.getAttribute('data-categorie');
-  storage.filtersSelected = true;
-  if (!isFilterSelected(storage.selectedFiltersList, value, categorie)) {
-    storage.selectedFiltersList.push({ value, categorie });
-    storage.focusOnFilter = filter.name;
+export function selectFilter(data, filterData, e) {
+  const filterValue = e.target.value,
+    categorie = e.target.getAttribute('data-categorie');
+  filterData.setFiltersSelected(true);
+  if (!isFilterSelected(filterData.selectedFiltersList, filterValue, categorie)) {
+    filterData.selectedFiltersList.push({ value: filterValue, categorie });
   } else {
-    removeFilter(storage, filter);
-    storage.focusOnFilter = null;
+    removeFilter(data, filterData, e);
   }
-  renderApp();
+  filterData.setSelectedFiltersList(filterData.selectedFiltersList);
 }
 
-export function removeFilter(storage, filter) {
-  const { value: filterName } = filter,
-    categorie = filter.getAttribute('data-categorie'),
-    deleteIndex = storage.selectedFiltersList.findIndex(
+export function removeFilter(data, filter, e) {
+  const filterName = e.target.value,
+    categorie = e.target.getAttribute('data-categorie'),
+    deleteIndex = filter.selectedFiltersList.findIndex(
       element => element.value === filterName && categorie === element.categorie,
     );
-  storage.focusOnFilter = null;
-  storage.selectedFiltersList.splice(deleteIndex, 1);
-  if (!storage.selectedFiltersList.length) {
-    storage.performFiltering = false;
-    storage.filtersSelected = false;
-    storage.totalHits = storage.flattenedData.length;
+  filter.selectedFiltersList.splice(deleteIndex, 1);
+  if (!filter.selectedFiltersList.length) {
+    filter.setPerformFiltering(false);
+    filter.setFiltersSelected(false);
+    data.setFilteredData([]);
+    data.setTotalHits(data.flattenedData.length);
   }
+  filter.setSelectedFiltersList(filter.selectedFiltersList);
 }
 
-export function updateFocusState() {
-  if (window.data.focusOnFilter !== null)
-    document.querySelector(`[name="${window.data.focusOnFilter}"]`).focus();
+export function resetState(data, mediaRequest, sort, filter, error) {
+  data.setTotalHits(null);
+  data.setNoResults(false);
+  data.setFilteredData([]);
+  data.setFlattenedData([]);
+  mediaRequest.setAllRequestsMade(false);
+  mediaRequest.setRequestMade(false);
+  sort.setIsSortingSet(false);
+  error.setIsError(false);
+  filter.setSelectedFiltersList([]);
+  filter.setPerformFiltering(false);
+  filter.setFiltersSelected(false);
+  filter.setFilters({});
+}
+
+export function setError(errMessage, mediaRequest, error) {
+  mediaRequest.setIsDataLoading(false);
+  mediaRequest.setAllRequestsMade(true);
+  error.setIsError(true);
+  error.setErrorMessage(`Ooops!..${errMessage}.<br/>Try to reload the page`);
+}
+
+export function changeBackground() {
+  addClass(`${styles.no_image__background}`, document.body);
+}
+
+export function updateFocusState(focusOnFilter) {
+  if (focusOnFilter !== null) document.querySelector(`[name="${focusOnFilter}"]`).focus();
 }
 
 export function isFilterSelected(filtersSelected, filterName, categorie) {
@@ -119,23 +153,26 @@ export function isFilterSelected(filtersSelected, filterName, categorie) {
   );
 }
 
-export function isOptionNeeded(storage, option) {
-  return storage.mediaTypes.some(mediaType => {
+export function isOptionNeeded(mediaTypes, option) {
+  return mediaTypes.some(mediaType => {
     return MEDIA_TYPE_SORTING_OPTIONS[mediaType].indexOf(option) !== -1;
   });
 }
 
-export const sortByDirection = {
-  ascending: function (data, option) {
-    data.sort((current, next) => (current[option] ? current[option] - next[option] : true));
-  },
-  descending: function (data, option) {
-    data.sort((current, next) => (current[option] ? next[option] - current[option] : true));
-  },
-};
+export function sortByDirection(data, option, direction) {
+  data.sort((a, b) => {
+    const isA = typeof a[option] !== 'undefined',
+      isB = typeof b[option] !== 'undefined';
+    if (direction === 'ascending') {
+      return isB - isA || (isA === true && a[option] - b[option]) || 0;
+    } else {
+      return isB - isA || (isA === true && b[option] - a[option]) || 0;
+    }
+  });
+}
 
-export function getResponseData(storage) {
-  return getConciseContentFromRespond(storage.responseData);
+export function getResponseData(responseData) {
+  return getConciseContentFromRespond(responseData);
 }
 
 function getConciseContentFromRespond(items) {
@@ -147,6 +184,7 @@ function getConciseContentFromRespond(items) {
       center,
       media_type,
       title,
+      description,
       secondary_creator = null,
       nasa_id,
     } = data[0];
@@ -158,55 +196,52 @@ function getConciseContentFromRespond(items) {
       center,
       previewImage: removeSpacesFromLink(previewImage),
       href,
+      description,
       mediaType: media_type,
       creator: getCreatorsList(secondary_creator),
     };
   });
 }
 
-export async function getFiltersAndUpdate(storage, metadata) {
-  await getFiltersFromMetadata(metadata, storage.flattenedData);
-  storage.isDataLoading = false;
-  changeStateToRequestMade(storage);
-  getFiltersFromLists(storage.flattenedData, storage.mediaTypes, storage.filters);
-  storage.totalHits = storage.flattenedData.length;
+export function getFiltersAndUpdate(flattenedData, metadata) {
+  getFiltersFromMetadata(metadata, flattenedData);
+  const { filters } = getFiltersFromLists(flattenedData),
+    totalHits = flattenedData.length;
+  return { filters, totalHits };
 }
 
-function getFiltersFromMetadata(metadata, data) {
-  return metadata.forEach((metadataItem, i) => {
-    getFiltersDataFromMetadata(metadataItem, data[i]);
+function getFiltersFromMetadata(metadata, flattenedData) {
+  metadata.forEach((mediaMetadata, i) => {
+    getFiltersDataFromMetadata(mediaMetadata, flattenedData[i]);
   });
 }
 
-function getFiltersDataFromMetadata(responseBody, dataItem) {
-  const mediaMetadata = responseBody,
-    mediaKeysNeeded = MEDATADA_KEYS_BY_MEDIA_TYPE[dataItem.mediaType];
+function getFiltersDataFromMetadata(mediaMetadata, dataItem) {
+  const mediaKeysNeeded = MEDATADA_KEYS_BY_MEDIA_TYPE[dataItem.mediaType];
   Object.keys(mediaKeysNeeded).forEach(key => {
     transformKeyValueToNumber(key, dataItem, mediaMetadata[mediaKeysNeeded[key]]);
   });
 }
 
-function getFiltersFromLists(data, mediaTypes, filtersContainer) {
-  data.forEach(dataItem => {
-    mediaTypes.forEach(mediaType => {
-      FILTERS_BY_MEDIA_TYPE[mediaType].forEach(key => {
-        if (!filtersContainer[key]) {
-          filtersContainer[key] = {};
+function getFiltersFromLists(flattenedData) {
+  const filtersContainer = {};
+  flattenedData.forEach(dataItem => {
+    FILTERS_BY_MEDIA_TYPE[dataItem.mediaType].forEach(key => {
+      if (!filtersContainer[key]) {
+        filtersContainer[key] = {};
+      }
+      if (dataItem[key]) {
+        if (Array.isArray(dataItem[key])) {
+          dataItem[key].forEach(keyword => {
+            updateFilterValue(filtersContainer[key], keyword);
+          });
+        } else {
+          updateFilterValue(filtersContainer[key], dataItem[key]);
         }
-        if (dataItem[key]) {
-          if (Array.isArray(dataItem[key])) {
-            dataItem[key].forEach(keyword => {
-              if (mediaType === dataItem.mediaType) {
-                updateFilterValue(filtersContainer[key], keyword);
-              }
-            });
-          } else {
-            updateFilterValue(filtersContainer[key], dataItem[key]);
-          }
-        }
-      });
+      }
     });
   });
+  return { filters: filtersContainer };
 }
 
 function updateFilterValue(filtersContainer, keyword) {
@@ -314,28 +349,14 @@ function splitStringWithDifferentSeparator(stringToSplit) {
   }
 }
 
-export function setError(errMessage, storage) {
-  storage.isDataLoading = false;
-  storage.allRequestsMade = true;
-  storage.isError = true;
-  storage.errorMessage = `Ooops!..${errMessage}.<br/>Try to reload the page`;
-  renderApp();
-}
-
-export function resetState(storage) {
-  storage.totalHits = null;
-  storage.sortingSet = false;
-  storage.requestMade = false;
-  storage.focusOnFilter = null;
-  storage.selectedFiltersList = [];
-  storage.performFiltering = false;
-  storage.filtersSelected = false;
-  storage.filters = {};
-  storage.noResults = false;
-  storage.allRequestsMade = false;
-}
-
-function changeStateToRequestMade(storage) {
-  storage.requestMade = true;
-  addClass(`${styles.no_image__background}`, document.body);
+export function showDescription(style, e) {
+  Array.from(document.querySelectorAll(`.${style}`)).forEach(item =>
+    item.classList.contains(`${style}`) &&
+    item.id !== `description_${e.target.getAttribute('data-index')}`
+      ? item.classList.remove(`${style}`)
+      : '',
+  );
+  document
+    .getElementById(`description_${e.target.getAttribute('data-index')}`)
+    .classList.toggle(`${style}`);
 }

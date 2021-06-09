@@ -1,14 +1,11 @@
 /** @jsx createElement */
 /** @jsxFrag createFragment */
-import { createElement, createFragment } from '../../framework/element';
+import { createElement, createFragment } from '../../framework';
 import styles from './style.css';
 
-export default function SearchButton() {
+export default function SearchButton({ mediaTypes }) {
   return (
-    <button
-      class={styles.search__button}
-      disabled={!window.data.mediaTypes.length || !window.data.searchValue}
-    >
+    <button class={styles.search__button} disabled={!mediaTypes.length}>
       search
     </button>
   );
