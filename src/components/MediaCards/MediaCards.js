@@ -3,8 +3,9 @@
 import { createElement, createFragment } from '../../framework';
 import styles from './style.css';
 import Card from './Card';
+import { useDataContext } from '../../context';
 
-export default function MediaCards({ filter, data }) {
+export default function MediaCards({ data }) {
   const mediaData = !data.filteredData.length ? data.flattenedData : data.filteredData;
   return (
     <div class={styles.cards_wrapper}>

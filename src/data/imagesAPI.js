@@ -6,7 +6,6 @@ import {
   changeBackground,
   setError,
 } from './mediaData';
-import renderApp from '../framework/renderer';
 import { replaceProtocolExtension, getItemByStringPattern } from '../utils';
 
 export async function requestMedia() {

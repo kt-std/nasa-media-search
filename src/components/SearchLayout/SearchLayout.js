@@ -8,16 +8,8 @@ import SearchInput from '../SearchInput';
 import SearchButton from '../SearchButton';
 import Logo from '../Logo';
 
-export default function SearchLayout({
-  searchPosition,
-  searchParams,
-  data,
-  mediaRequest,
-  filter,
-  sort,
-  error,
-  media,
-}) {
+export default function SearchLayout({ searchPosition, media }) {
+  const { searchParams, data, mediaRequest, filter, sort, error } = media;
   const searchPositionClass = searchPosition === 'top' ? styles.form_top : styles.form_middle,
     searchClasses = [styles.form__wrapper, searchPositionClass].join(' ');
   return (
@@ -30,16 +22,13 @@ export default function SearchLayout({
           class={styles.form}
         >
           <div class={styles.search__box}>
-            <MediaTypeSwitcher
-              mediaTypes={searchParams.mediaTypes}
-              setMediaTypes={searchParams.setMediaTypes}
-            />
+            <MediaTypeSwitcher setMediaTypes={searchParams.setMediaTypes} />
             <SearchInput
               searchValue={searchParams.searchValue}
               setSearchValue={searchParams.setSearchValue}
             />
           </div>
-          <SearchButton mediaTypes={searchParams.mediaTypes} />
+          <SearchButton />
         </form>
       </div>
     </>

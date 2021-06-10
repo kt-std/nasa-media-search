@@ -3,6 +3,7 @@
 import { createElement, createFragment } from '../../framework';
 import { removeFilter } from '../../data/mediaData';
 import styles from './style.css';
+import { AppContext } from '../../context';
 
 export default function SelectedFilter({ data, filter, filterItem }) {
   return (

@@ -9,7 +9,7 @@ import ResponseContent from './ResponseContent';
 export default function ResponseLayout({ searchPosition, media }) {
   return (
     <>
-      <SearchLayout searchPosition={searchPosition} {...media} media={media} />
+      <SearchLayout searchPosition={searchPosition} media={media} />
       <div class={styles.response__layout}>
         <br />
         <FiltersByCategories data={media.data} filter={media.filter} />

@@ -11,6 +11,6 @@ export default function Loader({ text }) {
       <p class={styles.error_text}>{text}</p>
     </div>
   ) : (
-    <div class={loader_text}></div>
+    <div class={loader_text}>{text}</div>
   );
 }

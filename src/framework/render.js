@@ -1,9 +1,13 @@
 /** @jsx createElement */
 /*** @jsxFrag createFragment */
-
 import { createElement } from './element';
-import { updateFocusState } from '../data/mediaData';
 import { current } from './hooks';
+
+/**
+ * Renders a component and attaches it to the target DOM element
+ * @param Component - function
+ * @param target - DOM element to attach component to
+ */
 
 let timer;
 
@@ -18,7 +22,6 @@ export function render(Component, target) {
     timer = requestAnimationFrame(workLoop);
   }
   timer = requestAnimationFrame(workLoop);
-  //updateFocusState();
 }
 
 export default render;

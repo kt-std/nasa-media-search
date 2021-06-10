@@ -4,7 +4,10 @@ import { createElement, createFragment } from '../../framework';
 import { updateMediaTypes } from '../../data/mediaData';
 import styles from './style.css';
 
-export default function MediaTypeSwitcher({ mediaTypes, setMediaTypes }) {
+import { useMediaTypesContext } from '../../context';
+
+export default function MediaTypeSwitcher({ setMediaTypes }) {
+  const mediaTypes = useMediaTypesContext();
   return (
     <>
       <label for="mediaSwitcherButton" class={`${styles.label} ${styles.overflow}`}>

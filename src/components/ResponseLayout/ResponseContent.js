@@ -9,6 +9,7 @@ import NoResults from '../NoResults';
 
 //TODO: fix searchValue update when input is changed (total hits for*)
 export default function ResponseContent({ media }) {
+  const data = media.data;
   return !media.data.noResults ? (
     <div class={styles.cards__wrapper} id="cardsWrapper">
       <div class={styles.sort_hits_wrapper}>
@@ -22,8 +23,8 @@ export default function ResponseContent({ media }) {
           mediaTypes={media.searchParams.mediaTypes}
         />
       </div>
-      <SelectedFiltersLayout data={media.data} filter={media.filter} />
-      <MediaCards data={media.data} filter={media.filter} />
+      <SelectedFiltersLayout filter={media.filter} data={data} />
+      <MediaCards data={media.data} />
     </div>
   ) : (
     <NoResults />

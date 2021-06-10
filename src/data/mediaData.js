@@ -19,7 +19,6 @@ import {
 } from '../utils';
 import { requestMedia } from './imagesAPI';
 import styles from '/style.css';
-import renderApp from '../framework/renderer';
 
 export function searchByTerm(error, data, mediaRequest, filter, sort, e) {
   e.preventDefault();

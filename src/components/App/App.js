@@ -7,6 +7,9 @@ import SearchLayout from '../SearchLayout';
 import { requestMedia } from '../../data/imagesAPI';
 import { useMedia } from '../../framework/customHooks';
 
+import { MediaTypesContext } from '../../context';
+import { DataContext } from '../../context';
+
 export default function App() {
   const media = useMedia();
   return (
@@ -18,7 +21,9 @@ export default function App() {
       ) : media.error.isError ? (
         <Loader text={media.error.errorMessage} />
       ) : (
-        <SearchLayout searchPosition={'middle'} {...media} />
+        <MediaTypesContext.Provider value={media.searchParams.mediaTypes}>
+          <SearchLayout searchPosition={'middle'} media={media} />
+        </MediaTypesContext.Provider>
       )}
     </>
   );

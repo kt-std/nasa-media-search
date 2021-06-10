@@ -46,7 +46,7 @@ export const useMediaRequest = () => {
 };
 
 export const useSearchParams = () => {
-  const [searchValue, setSearchValue] = useState(null);
+  const [searchValue, setSearchValue] = useState('');
   const [mediaTypes, setMediaTypes] = useState([]);
   return { searchValue, setSearchValue, mediaTypes, setMediaTypes };
 };
