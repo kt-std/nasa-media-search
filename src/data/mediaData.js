@@ -20,8 +20,24 @@ import {
 import { requestMedia } from './imagesAPI';
 import styles from '/style.css';
 
-export function searchByTerm(error, data, mediaRequest, filter, sort, e) {
+export function needToBeChecked(selectedMediaTypesValue, mediaType) {
+  return selectedMediaTypesValue.length && selectedMediaTypesValue.indexOf(mediaType) !== -1
+    ? true
+    : false;
+}
+
+export function getCardStyling(mediaType, styles) {
+  return mediaType === 'audio' ? styles.audio : mediaType === 'video' ? styles.video : styles.image;
+}
+
+export function getBackground(dataItem) {
+  return dataItem.previewImage !== null ? dataItem.previewImage : require('../../assets/audio.svg');
+}
+
+export function searchByTerm(searchParams, error, data, mediaRequest, filter, sort, e) {
   e.preventDefault();
+  // const selectedMediaTypes = searchParams.selectedMediaTypes.slice();
+  searchParams.setMediaTypes(searchParams.selectedMediaTypes);
   resetState(data, mediaRequest, sort, filter, error);
   mediaRequest.setIsDataLoading(true);
 }
@@ -32,6 +48,7 @@ export function openHomePage(media, e) {
   mediaRequest.setRequestMade(false);
   searchParams.setSearchValue(null);
   searchParams.setMediaTypes([]);
+  searchParams.setSelectedMediaTypes([]);
   resetState(data, mediaRequest, sort, filter, error);
   removeClass(`${styles.no_image__background}`, document.body);
 }
@@ -42,24 +59,25 @@ export function updateData(dataParams, data, filter, searchParams) {
   data.setNoResults(noResults);
   data.setFlattenedData(flattenedData);
   filter.setFilters(filters);
-  searchParams.setMediaTypes(mediaTypes);
 }
 
-export function updateMediaTypes(mediaTypesValue, setMediaTypesCB, input) {
-  const inputIndex = mediaTypesValue.indexOf(input.value);
+export function updateMediaTypes(selectedMediaTypesValue, setSelectedMediaTypes, input) {
+  const mediaTypes = selectedMediaTypesValue.slice();
+  const inputIndex = mediaTypes.indexOf(input.value);
   if (inputIndex === -1) {
-    mediaTypesValue.push(input.value);
+    mediaTypes.push(input.value);
   } else {
-    mediaTypesValue.splice(inputIndex, 1);
+    mediaTypes.splice(inputIndex, 1);
   }
-  setMediaTypesCB(mediaTypesValue);
+  setSelectedMediaTypes(mediaTypes);
 }
 
-export function sortMedia(data, sort, e) {
-  const { mediaData, setCB } = data.filtersSelected
-      ? { mediaData: data.filteredData, setCB: data.setFilteredData }
-      : { mediaData: data.flattenedData, setCB: data.setFlattenedData },
+export function sortMedia(data, sort, filter, e) {
+  const { mediaDataReceived, setCB } = filter.filtersSelected
+      ? { mediaDataReceived: data.filteredData, setCB: data.setFilteredData }
+      : { mediaDataReceived: data.flattenedData, setCB: data.setFlattenedData },
     [option, direction] = e.target.value.split('_');
+  const mediaData = mediaDataReceived.slice();
   sort.setSortingOption(e.target.value);
   sort.setIsSortingSet(true);
   sortByDirection(mediaData, option, direction);
@@ -90,30 +108,32 @@ export function filterItems(data, filterData) {
 
 export function selectFilter(data, filterData, e) {
   const filterValue = e.target.value,
-    categorie = e.target.getAttribute('data-categorie');
+    categorie = e.target.getAttribute('data-categorie'),
+    selectedFiltersList = filterData.selectedFiltersList.slice();
   filterData.setFiltersSelected(true);
-  if (!isFilterSelected(filterData.selectedFiltersList, filterValue, categorie)) {
-    filterData.selectedFiltersList.push({ value: filterValue, categorie });
+  if (!isFilterSelected(selectedFiltersList, filterValue, categorie)) {
+    selectedFiltersList.push({ value: filterValue, categorie });
+    filterData.setSelectedFiltersList(selectedFiltersList);
   } else {
-    removeFilter(data, filterData, e);
+    removeFilter(data, selectedFiltersList, filterData, e);
   }
-  filterData.setSelectedFiltersList(filterData.selectedFiltersList);
 }
 
-export function removeFilter(data, filter, e) {
+export function removeFilter(data, selectedFilters, filter, e) {
   const filterName = e.target.value,
     categorie = e.target.getAttribute('data-categorie'),
-    deleteIndex = filter.selectedFiltersList.findIndex(
+    selectedFiltersList = selectedFilters.slice(),
+    deleteIndex = selectedFiltersList.findIndex(
       element => element.value === filterName && categorie === element.categorie,
     );
-  filter.selectedFiltersList.splice(deleteIndex, 1);
-  if (!filter.selectedFiltersList.length) {
+  selectedFiltersList.splice(deleteIndex, 1);
+  if (!selectedFiltersList.length) {
     filter.setPerformFiltering(false);
     filter.setFiltersSelected(false);
     data.setFilteredData([]);
     data.setTotalHits(data.flattenedData.length);
   }
-  filter.setSelectedFiltersList(filter.selectedFiltersList);
+  filter.setSelectedFiltersList(selectedFiltersList);
 }
 
 export function resetState(data, mediaRequest, sort, filter, error) {
@@ -149,7 +169,9 @@ export function updateFocusState(focusOnFilter) {
 export function isFilterSelected(filtersSelected, filterName, categorie) {
   return filtersSelected.some(
     filter => filter.categorie === categorie && filter.value === filterName,
-  );
+  )
+    ? 'checked'
+    : null;
 }
 
 export function isOptionNeeded(mediaTypes, option) {
@@ -253,11 +275,6 @@ function updateFilterValue(filtersContainer, keyword) {
   }
 }
 
-export function getMediaTypes() {
-  const mediaTypes = document.querySelectorAll('input[name="mediaType"]:checked');
-  return getParametersValueFromNodeList('value', mediaTypes);
-}
-
 export function setSelectedMediaTypes(mediaTypes) {
   return mediaTypes.length ? mediaTypes : null;
 }
@@ -324,14 +341,8 @@ function getImageAlbum(value) {
 
 function getSizeInKBFromString(value) {
   const [number, unit] = value.split(' ');
-  switch (unit.toUpperCase()) {
-    case 'KB':
-      return { number, unit, value: getNumberFromString(number) };
-    case 'MB':
-      return { number, unit, value: getNumberFromString(number) * 1024 };
-    case 'GB':
-      return { number, unit, value: getNumberFromString(number) * 1024 * 1024 };
-  }
+  const SIZE_VALUE = { KB: 1, MB: 1024, GB: 1024 * 1024 };
+  return { number, unit, value: getNumberFromString(number) * SIZE_VALUE[unit.toUpperCase()] };
 }
 
 function getResolutionFromString(value) {
@@ -348,14 +359,38 @@ function splitStringWithDifferentSeparator(stringToSplit) {
   }
 }
 
-export function showDescription(style, e) {
-  Array.from(document.querySelectorAll(`.${style}`)).forEach(item =>
-    item.classList.contains(`${style}`) &&
-    item.id !== `description_${e.target.getAttribute('data-index')}`
-      ? item.classList.remove(`${style}`)
-      : '',
-  );
-  document
-    .getElementById(`description_${e.target.getAttribute('data-index')}`)
-    .classList.toggle(`${style}`);
+export function showDescription(style, id, e) {
+  Array.from(document.querySelectorAll(`.${style}`)).forEach(item => {
+    if (item.classList.contains(`${style}`) && item.id !== id) {
+      item.classList.remove(style);
+    }
+  });
+  const target = document.getElementById(id);
+  target.classList.contains(style) ? target.classList.remove(style) : target.classList.add(style);
+}
+
+export function leaveItemShown(e, id, style) {
+  if (
+    e.relatedTarget === null ||
+    (e.relatedTarget.id !== id && e.relatedTarget.parentNode.id !== id)
+  ) {
+    document.getElementById(id).classList.remove(style);
+  }
+}
+export function blurFromItem(e, style) {
+  e.target.classList.contains(style)
+    ? e.target.classList.remove(style)
+    : e.target.parentNode.classList.remove(style);
+}
+
+export function showMediaSwitch(e, setShowSwitcher) {
+  e.relatedTarget &&
+  e.target &&
+  (e.target.id === 'inputWrapper' || e.relatedTarget.id === 'inputWrapper')
+    ? setShowSwitcher(true)
+    : e.relatedTarget === null ||
+      e.relatedTarget.name !== 'mediaType' ||
+      e.target.name !== 'mediaType'
+    ? setShowSwitcher(false)
+    : null;
 }

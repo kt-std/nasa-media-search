@@ -1,4 +1,5 @@
-import { useState, useEffect } from './hooks';
+import { useState, useEffect } from 'react';
+// import { useState, useEffect } from './hooks';
 import { updateData, sortMedia, filterItems } from '../data/mediaData';
 import { requestMedia } from '../data/imagesAPI';
 
@@ -13,7 +14,7 @@ export const useMedia = () => {
   useEffect(() => {
     async function performRequest() {
       if (mediaRequest.isDataLoading) {
-        const dataReceived = await requestMedia();
+        const dataReceived = await requestMedia(searchParams.mediaTypes, searchParams.searchValue);
         if (!dataReceived.isError) {
           updateData(dataReceived, data, filter, searchParams);
           mediaRequest.setRequestMade(true);
@@ -48,7 +49,16 @@ export const useMediaRequest = () => {
 export const useSearchParams = () => {
   const [searchValue, setSearchValue] = useState('');
   const [mediaTypes, setMediaTypes] = useState([]);
-  return { searchValue, setSearchValue, mediaTypes, setMediaTypes };
+  const [selectedMediaTypes, setSelectedMediaTypes] = useState([]);
+
+  return {
+    searchValue,
+    setSearchValue,
+    mediaTypes,
+    setMediaTypes,
+    selectedMediaTypes,
+    setSelectedMediaTypes,
+  };
 };
 
 export const useData = requestMade => {

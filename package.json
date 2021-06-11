@@ -25,7 +25,10 @@
     "url": "https://github.com/kt-std/nmse/issues"
   },
   "homepage": "https://github.com/kt-std/nmse#readme",
-  "dependencies": {},
+  "dependencies": {
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2"
+  },
   "devDependencies": {
     "@babel/core": "^7.13.14",
     "@babel/eslint-parser": "^7.13.14",
@@ -50,8 +53,6 @@
       [
         "@babel/plugin-transform-react-jsx",
         {
-          "pragma": "createElement",
-          "pragmaFRag": "createFragment",
           "throwIfNamespace": "true"
         }
       ]

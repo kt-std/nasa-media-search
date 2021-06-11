@@ -1,35 +1,29 @@
 .label {
   padding: var(--padding);
   box-sizing: border-box;
-  height: 100%;
   cursor: pointer;
+  align-self: stretch;
+  margin: 0;
+  border-radius: inherit;
+  background-color: blue;
 }
-.button {
-  top: 0;
-  left: 0;
-  height: 0;
-  width: 0;
-  height: 1px;
-  width: 1px;
-  position: absolute;
-  -moz-appearance: none;
-  -webkit-appearance: none;
-  appearance: none;
-  border: none;
+.label:focus-within {
+  background-color: green;
 }
 
-.button:checked + .wrapper {
-  visibility: visible;
+.label:focus {
+  border: 10px solid red;
 }
 
-.mediaType ~ label,
 .mediaType {
   cursor: pointer;
 }
 
 .wrapper {
   background-color: var(--light-color);
+  box-sizing: border-box;
   position: absolute;
+  display: flex;
   top: calc(var(--input-height) + var(--triangle--size) * 2);
   left: 0;
   border-radius: var(--border-radius);
@@ -50,4 +44,15 @@
   left: 5px;
   height: 0;
   width: 0;
+}
+
+.visible {
+  visibility: visible;
+}
+
+.showMenu {
+  opacity: 1;
+  appearance: none;
+  width: 1px;
+  height: 1px;
 }

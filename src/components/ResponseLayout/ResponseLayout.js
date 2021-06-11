@@ -1,6 +1,4 @@
-/** @jsx createElement */
-/** @jsxFrag createFragment */
-import { createElement, createFragment } from '../../framework';
+import React from 'react';
 import styles from './style.css';
 import SearchLayout from '../SearchLayout';
 import FiltersByCategories from '../FiltersByCategories';
@@ -10,7 +8,7 @@ export default function ResponseLayout({ searchPosition, media }) {
   return (
     <>
       <SearchLayout searchPosition={searchPosition} media={media} />
-      <div class={styles.response__layout}>
+      <div className={styles.response__layout}>
         <br />
         <FiltersByCategories data={media.data} filter={media.filter} />
         <br />

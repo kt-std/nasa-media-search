@@ -1,17 +1,16 @@
-/** @jsx createElement */
-/** @jsxFrag createFragment */
-import { createElement, createFragment } from '../../framework';
+import React from 'react';
 import ResponseLayout from '../ResponseLayout';
 import Loader from '../Loader';
 import SearchLayout from '../SearchLayout';
 import { requestMedia } from '../../data/imagesAPI';
-import { useMedia } from '../../framework/customHooks';
+import { useMedia, useSearchParams } from '../../framework/customHooks';
 
 import { MediaTypesContext } from '../../context';
 import { DataContext } from '../../context';
 
 export default function App() {
   const media = useMedia();
+  const search = useSearchParams();
   return (
     <>
       {media.mediaRequest.requestMade ? (
@@ -21,9 +20,7 @@ export default function App() {
       ) : media.error.isError ? (
         <Loader text={media.error.errorMessage} />
       ) : (
-        <MediaTypesContext.Provider value={media.searchParams.mediaTypes}>
-          <SearchLayout searchPosition={'middle'} media={media} />
-        </MediaTypesContext.Provider>
+        <SearchLayout searchPosition={'middle'} media={media} />
       )}
     </>
   );

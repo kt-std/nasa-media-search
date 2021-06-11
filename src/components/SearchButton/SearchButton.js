@@ -1,13 +1,9 @@
-/** @jsx createElement */
-/** @jsxFrag createFragment */
-import { createElement, createFragment } from '../../framework';
+import React from 'react';
 import styles from './style.css';
-import { useMediaTypesContext } from '../../context';
 
-export default function SearchButton() {
-  const mediaTypes = useMediaTypesContext();
+export default function SearchButton({ selectedMediaTypes }) {
   return (
-    <button class={styles.search__button} disabled={!mediaTypes.length}>
+    <button className={styles.search__button} disabled={!selectedMediaTypes.length}>
       search
     </button>
   );

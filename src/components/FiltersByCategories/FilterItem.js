@@ -1,23 +1,21 @@
-/** @jsx createElement */
-/** @jsxFrag createFragment */
-import { createElement, createFragment } from '../../framework';
-import { isFilterSelected, selectFilter } from '../../data/mediaData.js';
+import React from 'react';
+import { isFilterSelected, selectFilter } from '../../data/mediaData';
 import styles from './style.css';
 
 export default function FilterItem({ data, filter, filterName, filterCounter, categorie }) {
   return (
     <>
-      <label class={styles.filter__label}>
+      <label className={styles.filter__label}>
         <input
           value={filterName}
           name={filterName}
           data-categorie={categorie}
           type={'checkbox'}
-          checked={isFilterSelected(filter.selectedFiltersList, filterName, categorie)}
-          onchange={e => selectFilter(data, filter, e)}
+          defaultChecked={isFilterSelected(filter.selectedFiltersList, filterName, categorie)}
+          onChange={e => selectFilter(data, filter, e)}
         />
-        <span class={styles.text}>{filterName} </span>
-        <span class={styles.filter__counter}>({filterCounter})</span>
+        <span className={styles.text}>{filterName} </span>
+        <span className={styles.filter__counter}>({filterCounter})</span>
       </label>
     </>
   );

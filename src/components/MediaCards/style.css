@@ -166,3 +166,7 @@
 .download:hover {
   background-color: var(--btn-hover);
 }
+
+.item_container:focus {
+  border: 10px green;
+}

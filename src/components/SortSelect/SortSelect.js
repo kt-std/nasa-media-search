@@ -1,21 +1,19 @@
-/** @jsx createElement */
-/** @jsxFrag createFragment */
-import { createElement, createFragment } from '../../framework';
+import React from 'react';
 import { sortMedia } from '../../data/mediaData';
-import render from '../../framework';
 import styles from './style.css';
 import SortOptions from './SortOptions';
 
-export default function SortSelect({ data, sort, mediaTypes }) {
+export default function SortSelect({ data, sort, filter, mediaTypes }) {
   return (
     <label>
       Sort by:
       <select
         name="mediaSort"
         id="mediaSort"
-        onchange={e => {
-          sortMedia(data, sort, e);
+        onChange={e => {
+          sortMedia(data, sort, filter, e);
         }}
+        value={sort.sortingOption || ''}
       >
         <SortOptions
           isSortingSet={sort.isSortingSet}
@@ -26,4 +24,3 @@ export default function SortSelect({ data, sort, mediaTypes }) {
     </label>
   );
 }
-//render

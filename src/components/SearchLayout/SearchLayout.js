@@ -1,6 +1,4 @@
-/** @jsx createElement */
-/** @jsxFrag createFragment */
-import { createElement, createFragment } from '../../framework';
+import React from 'react';
 import { searchByTerm } from '../../data/mediaData';
 import styles from './style.css';
 import MediaTypeSwitcher from '../MediaTypeSwitcher';
@@ -14,21 +12,26 @@ export default function SearchLayout({ searchPosition, media }) {
     searchClasses = [styles.form__wrapper, searchPositionClass].join(' ');
   return (
     <>
-      <div class={searchClasses}>
+      <div className={searchClasses}>
         {searchPosition === 'top' ? <Logo media={media} /> : ``}
         <form
-          onsubmit={event => searchByTerm(error, data, mediaRequest, filter, sort, event)}
+          onSubmit={event =>
+            searchByTerm(searchParams, error, data, mediaRequest, filter, sort, event)
+          }
           id="searchForm"
-          class={styles.form}
+          className={styles.form}
         >
-          <div class={styles.search__box}>
-            <MediaTypeSwitcher setMediaTypes={searchParams.setMediaTypes} />
+          <div className={styles.search__box}>
+            <MediaTypeSwitcher
+              selectedMediaTypes={searchParams.selectedMediaTypes}
+              setSelectedMediaTypes={searchParams.setSelectedMediaTypes}
+            />
             <SearchInput
               searchValue={searchParams.searchValue}
               setSearchValue={searchParams.setSearchValue}
             />
           </div>
-          <SearchButton />
+          <SearchButton selectedMediaTypes={searchParams.selectedMediaTypes} />
         </form>
       </div>
     </>

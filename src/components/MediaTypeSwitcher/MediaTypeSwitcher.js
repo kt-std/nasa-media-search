@@ -1,32 +1,49 @@
-/** @jsx createElement */
-/** @jsxFrag createFragment */
-import { createElement, createFragment } from '../../framework';
-import { updateMediaTypes } from '../../data/mediaData';
+import React, { useState } from 'react';
+import { updateMediaTypes, needToBeChecked, showMediaSwitch } from '../../data/mediaData';
 import styles from './style.css';
 
-import { useMediaTypesContext } from '../../context';
-
-export default function MediaTypeSwitcher({ setMediaTypes }) {
-  const mediaTypes = useMediaTypesContext();
+export default function MediaTypeSwitcher({ selectedMediaTypes, setSelectedMediaTypes }) {
+  const [showSwitcher, setShowSwitcher] = useState(false);
   return (
     <>
-      <label for="mediaSwitcherButton" class={`${styles.label} ${styles.overflow}`}>
-        {mediaTypes.length ? mediaTypes.join(', ') : 'Media type'}
+      <label className={styles.label}>
+        {selectedMediaTypes.length ? selectedMediaTypes.join(', ') : 'Media type'}
+        <input
+          type="checkbox"
+          className={styles.showMenu}
+          checked={showSwitcher}
+          onBlur={e => (e.relatedTarget === null ? setShowSwitcher(false) : null)}
+          onChange={e => {
+            const status = showSwitcher;
+            setShowSwitcher(!status);
+          }}
+        />
       </label>
-      <input type="checkbox" class={styles.button} id="mediaSwitcherButton" />
-      <div class={styles.wrapper}>
-        {['image', 'audio', 'video'].map(mediaType => (
-          <div>
+
+      <div className={showSwitcher ? [styles.wrapper, styles.visible].join(' ') : styles.wrapper}>
+        {['image', 'audio', 'video'].map((mediaType, i) => (
+          <div
+            key={i}
+            tabIndex="-1"
+            id="inputWrapper"
+            className={styles.inputWrapper}
+            onBlur={e => showMediaSwitch(e, setShowSwitcher)}
+          >
             <input
               type="checkbox"
-              class={styles.mediaType}
+              data-title={mediaType}
+              className={styles.mediaType}
               name="mediaType"
-              onchange={event => updateMediaTypes(mediaTypes, setMediaTypes, event.target)}
+              onChange={event =>
+                updateMediaTypes(selectedMediaTypes, setSelectedMediaTypes, event.target)
+              }
               id={mediaType}
-              value={mediaType}
-              checked={mediaTypes.length && mediaTypes.indexOf(mediaType) !== -1}
+              defaultValue={mediaType}
+              checked={needToBeChecked(selectedMediaTypes, mediaType)}
             />
-            <label For={mediaType}>{mediaType}</label>
+            <label htmlFor={mediaType} className={styles.checkbox_label}>
+              {mediaType}
+            </label>
           </div>
         ))}
       </div>
