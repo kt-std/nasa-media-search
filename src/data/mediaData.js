@@ -426,3 +426,17 @@ export function checkSwitcher(e, setFocusOnSwitcher, setFocusInsideChild) {
     setFocusInsideChild(false);
   }
 }
+
+export function isDataCached(mediaTypes, searchValue, cache) {
+  return cache[searchValue] && arraysEqual(cache[searchValue].mediaTypes, mediaTypes);
+}
+
+export function updateCache(cache, setCache, searchParams, dataReceived) {
+  const cacheCopy = { ...cache };
+  cacheCopy[searchParams.searchValue] = { data: dataReceived, mediaTypes: searchParams.mediaTypes };
+  setCache(cacheCopy);
+}
+
+function arraysEqual(a1, a2) {
+  return JSON.stringify(a1) == JSON.stringify(a2);
+}

@@ -1,5 +1,12 @@
 import { useState, useEffect } from 'react';
-import { updateData, sortMedia, filterItems, changeBackground } from './data/mediaData';
+import {
+  updateData,
+  sortMedia,
+  filterItems,
+  changeBackground,
+  isDataCached,
+  updateCache,
+} from './data/mediaData';
 import { requestMedia } from './data/imagesAPI';
 import { getPictureOfTheDay } from './data/apodAPI';
 
@@ -16,13 +23,11 @@ export const useMedia = () => {
   useEffect(() => {
     async function performRequest() {
       if (mediaRequest.isDataLoading) {
-        const dataReceived = cache[searchParams.searchValue]
-          ? cache[searchParams.searchValue]
+        const dataReceived = isDataCached(searchParams.mediaTypes, searchParams.searchValue, cache)
+          ? cache[searchParams.searchValue].data
           : await requestMedia(searchParams.mediaTypes, searchParams.searchValue);
         if (!dataReceived.isError) {
-          const cacheCopy = { ...cache };
-          cacheCopy[searchParams.searchValue] = dataReceived;
-          setCache(cacheCopy);
+          updateCache(cache, setCache, searchParams, dataReceived);
           updateData(dataReceived, data, filter, searchParams);
           mediaRequest.setRequestMade(true);
         } else {
