@@ -6,6 +6,7 @@ This application provides functionality to perform a search of media resources s
 - [About](#nasa-media-search-engine-nmse-rocket)
 - [Key features](#key-features-key)
 - [Additional features](#additional-features-star2)
+- [Upcoming features](upcoming-features-fire)
 - [Installation](#installation)
 
 ## Key features :key:
@@ -28,8 +29,12 @@ This application provides functionality to perform a search of media resources s
 2. Catalogue of Near Earth Objects (NEO)
 3. Sorting of NEO by: magnitude, approach date, velocity
 4. Recent NASA photo/video background for the main page
----
-:sparkles: - implemented features
+
+:sparkles: - *implemented features*
+
+### Upcoming features :fire:
+0. Media items pagination
+1. Responsive layout
 
 # Installation
 1. Download the code from the `main` branch 
