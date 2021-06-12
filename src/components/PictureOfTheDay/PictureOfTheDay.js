@@ -6,11 +6,6 @@ export default function PictureOfTheDay({ apod }) {
   const [showPicture, setShowPicture] = useState(false);
   return !apod.isError ? (
     <div className={styles.container}>
-      <label tabIndex="0" htmlFor="check" className={styles.checkbox}>
-        {' '}
-        pod
-      </label>
-      <span className={styles.pod}>i</span>
       <input
         id="check"
         type="checkbox"
@@ -21,6 +16,10 @@ export default function PictureOfTheDay({ apod }) {
         }}
         className={styles.showPicture}
       />
+      <label htmlFor="check" className={styles.checkbox}>
+        pod
+      </label>
+      <span className={styles.pod}>i</span>
       <div className={styles.picture_container_background}>
         <div className={styles.picture_container}>
           <button

@@ -45,11 +45,7 @@
   margin-right: 5px;
   text-transform: uppercase;
 }
-.checkbox:focus,
-.checkbox:hover {
-  color: var(--btn-color);
-  text-shadow: 0 0 2px rgba(0, 0, 0, 0.4);
-}
+
 .pod {
   width: 18px;
   height: 18px;
@@ -88,6 +84,12 @@
 .pod:hover:after {
   visibility: visible;
 }
+.showPicture:focus ~ .checkbox,
+.checkbox:hover {
+  color: var(--btn-color);
+  text-shadow: 0 0 2px rgba(0, 0, 0, 0.4);
+}
+
 .showPicture {
   width: 1px;
   height: 1px;

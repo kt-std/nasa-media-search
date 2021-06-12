@@ -46,11 +46,12 @@ export function searchByTerm(searchInputValue, media, e) {
   mediaRequest.setIsDataLoading(true);
 }
 
-export function openHomePage(media, e) {
+export function openHomePage(media, setSearchInputValue, e) {
   const { data, mediaRequest, searchParams, sort, filter, error } = media;
   e.preventDefault();
   mediaRequest.setRequestMade(false);
   searchParams.setSearchValue(null);
+  setSearchInputValue('');
   searchParams.setMediaTypes([]);
   searchParams.setSelectedMediaTypes([]);
   resetState(data, mediaRequest, sort, filter, error);

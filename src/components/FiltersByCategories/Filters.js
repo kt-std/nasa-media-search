@@ -13,7 +13,7 @@ export default function Filters({ filter, data }) {
           <h3 className={styles.filter__heading}>{FILTERS_TEXT[filterName]}</h3>
           <div className={styles.filter__item_wrapper}>
             {Object.keys(filters[filterName]).map((filterContent, i) => (
-              <React.Fragment key={Math.random()}>
+              <React.Fragment key={i}>
                 <FilterItem
                   filterName={filterContent}
                   filterCounter={filters[filterName][filterContent]}
