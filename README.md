@@ -6,6 +6,7 @@ This application provides functionality to perform a search of media resources s
 - [About](#nasa-media-search-engine-nmse-rocket)
 - [Key features](#key-features-key)
 - [Additional features](#additional-features-star2)
+- [Upcoming features](#upcoming-features-fire)
 - [Installation](#installation)
 
 ## Key features :key:
@@ -28,12 +29,16 @@ This application provides functionality to perform a search of media resources s
 2. Catalogue of Near Earth Objects (NEO)
 3. Sorting of NEO by: magnitude, approach date, velocity
 4. Recent NASA photo/video background for the main page
----
-:sparkles: - implemented features
+
+:sparkles: - *implemented features*
+
+### Upcoming features :fire:
+0. Media items pagination
+1. Responsive layout
 
 # Installation
-1. Download the code from the `master` branch (as it contains assets) 
+1. Download the code from the `main` branch 
 2. Unpack the code to the destination folder
-3. Open the destination folder and run `npm i`
+3. Open the destination folder and run `npm i` or `npm install`
 4. After the packages installation run `npm run start` or `npm start`
 5. By default, code will run at `localhost:1234` 
