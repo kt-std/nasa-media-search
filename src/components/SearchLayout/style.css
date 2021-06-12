@@ -14,8 +14,8 @@
   width: 100%;
   min-height: 100vh;
   height: auto;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
 }
 
 .form {
@@ -23,12 +23,12 @@
   border-radius: var(--border-radius);
   display: flex;
   padding: 0;
-  align-items: center;
+  height: 50px;
   justify-content: center;
   background-color: var(--extra-light);
 }
 form > * {
-  margin: var(--form-padding);
+  /*padding: var(--form-padding);*/
 }
 
 .search__box {

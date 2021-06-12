@@ -1,18 +1,26 @@
 .label {
-  padding: var(--padding);
   box-sizing: border-box;
-  cursor: pointer;
-  align-self: stretch;
+  padding: 10px;
   margin: 0;
-  border-radius: inherit;
-  background-color: blue;
+  min-width: 0;
+  display: flex;
+  width: 150px;
+  text-transform: uppercase;
+  justify-content: center;
+  align-self: stretch;
+  align-items: center;
+  cursor: pointer;
+  border-top-left-radius: var(--border-radius);
+  border-bottom-left-radius: var(--border-radius);
+}
+.text {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 .label:focus-within {
-  background-color: green;
-}
-
-.label:focus {
-  border: 10px solid red;
+  background-color: #e0e0e0;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
 }
 
 .mediaType {
@@ -55,4 +63,7 @@
   appearance: none;
   width: 1px;
   height: 1px;
+}
+.showMenu:focus {
+  outline: none;
 }

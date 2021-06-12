@@ -1,16 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import ResponseLayout from '../ResponseLayout';
 import Loader from '../Loader';
 import SearchLayout from '../SearchLayout';
 import { requestMedia } from '../../data/imagesAPI';
-import { useMedia, useSearchParams } from '../../framework/customHooks';
+import { useMedia } from '../../framework/customHooks';
 
 import { MediaTypesContext } from '../../context';
 import { DataContext } from '../../context';
 
 export default function App() {
   const media = useMedia();
-  const search = useSearchParams();
+  const searchInputValue = useState('');
   return (
     <>
       {media.mediaRequest.requestMade ? (

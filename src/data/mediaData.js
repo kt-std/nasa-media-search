@@ -383,14 +383,41 @@ export function blurFromItem(e, style) {
     : e.target.parentNode.classList.remove(style);
 }
 
-export function showMediaSwitch(e, setShowSwitcher) {
-  e.relatedTarget &&
-  e.target &&
-  (e.target.id === 'inputWrapper' || e.relatedTarget.id === 'inputWrapper')
-    ? setShowSwitcher(true)
-    : e.relatedTarget === null ||
-      e.relatedTarget.name !== 'mediaType' ||
-      e.target.name !== 'mediaType'
-    ? setShowSwitcher(false)
-    : null;
+export function blurItemInContainer(
+  e,
+  wrapper,
+  checkboxName,
+  setFocusInsideChild,
+  setFocusOnSwitcher,
+) {
+  if (!e.relatedTarget || e.relatedTarget.id !== wrapper) {
+    setFocusInsideChild(false);
+    setFocusOnSwitcher(false);
+  }
+  if (e.relatedTarget && e.relatedTarget.name === checkboxName) {
+    setFocusInsideChild(true);
+  }
+}
+
+export function hideSwitcher(e, switcherId, inputName, inputContainer, setFocusOnSwitcher) {
+  if (
+    e.target.id === switcherId &&
+    e.relatedTarget &&
+    e.relatedTarget.name !== inputName &&
+    e.relatedTarget.id !== inputContainer
+  ) {
+    setFocusOnSwitcher(false);
+  }
+  if (e.relatedTarget === null) {
+    setFocusOnSwitcher(false);
+  }
+}
+
+export function checkSwitcher(e, setFocusOnSwitcher, setFocusInsideChild) {
+  if (e.target.checked) {
+    setFocusOnSwitcher(true);
+  } else {
+    setFocusOnSwitcher(false);
+    setFocusInsideChild(false);
+  }
 }

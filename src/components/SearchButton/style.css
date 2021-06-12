@@ -9,6 +9,7 @@
   align-self: stretch;
   color: white;
   background-color: #1976d2;
+  text-transform: uppercase;
 }
 
 .search__button:hover {
