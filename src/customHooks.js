@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { updateData, sortMedia, filterItems } from './data/mediaData';
 import { requestMedia } from './data/imagesAPI';
+import { getPictureOfTheDay } from './data/apodAPI';
 
 export const useMedia = () => {
   const searchParams = useSearchParams(),
@@ -8,7 +9,8 @@ export const useMedia = () => {
     error = useError(),
     sort = useSort(),
     filter = useFilter(),
-    mediaRequest = useMediaRequest();
+    mediaRequest = useMediaRequest(),
+    [apod, setApod] = useState({});
 
   useEffect(() => {
     async function performRequest() {
@@ -27,7 +29,12 @@ export const useMedia = () => {
     performRequest();
   }, [mediaRequest.isDataLoading]);
 
-  return { searchParams, data, error, sort, filter, mediaRequest };
+  useEffect(async () => {
+    const apodData = await getPictureOfTheDay();
+    setApod(apodData);
+  }, []);
+
+  return { searchParams, data, error, sort, filter, mediaRequest, apod };
 };
 
 export const useMediaRequest = () => {

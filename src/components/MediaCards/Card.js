@@ -4,13 +4,14 @@ import {
   showDescription,
   leaveItemShown,
   getBackground,
+  setBackground,
   getCardStyling,
 } from '../../data/mediaData';
 import CardDescription from './CardDescription';
 
 export default function Card({ dataItem, index }) {
   const cardClass = [styles.card__item, getCardStyling(dataItem.mediaType, styles)].join(' '),
-    background = { backgroundImage: `url(${getBackground(dataItem)}` },
+    background = setBackground(getBackground(dataItem)),
     descriptionId = `description_${index}`;
   return (
     <div className={styles.item_container}>

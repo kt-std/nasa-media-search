@@ -33,6 +33,9 @@ export function getCardStyling(mediaType, styles) {
 export function getBackground(dataItem) {
   return dataItem.previewImage !== null ? dataItem.previewImage : require('../../assets/audio.svg');
 }
+export function setBackground(url) {
+  return { backgroundImage: `url(${url}` };
+}
 
 export function searchByTerm(searchInputValue, media, e) {
   const { searchParams, error, data, mediaRequest, filter, sort } = media;

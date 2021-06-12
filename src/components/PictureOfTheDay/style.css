@@ -1,0 +1,125 @@
+.picture {
+  width: 100%;
+  min-height: 300px;
+  width: 100%;
+  max-height: 600px;
+  max-width: 800px;
+  height: 90%;
+  display: flex;
+  background-size: cover;
+  z-index: 200;
+  border-radius: inherit;
+}
+
+.container:focus-within {
+  border: 2px;
+}
+
+.picture_container {
+  width: 50%;
+  height: 80%;
+  background-color: white;
+  box-sizing: border-box;
+  position: relative;
+  padding: 10px;
+  text-align: center;
+  border-radius: var(--border-radius);
+}
+
+.picture_container_background {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  top: 0;
+  z-index: 1000;
+  left: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
+.checkbox {
+  cursor: pointer;
+  margin-right: 5px;
+  text-transform: uppercase;
+}
+.checkbox:focus,
+.checkbox:hover {
+  color: var(--btn-color);
+  text-shadow: 0 0 2px rgba(0, 0, 0, 0.4);
+}
+.pod {
+  width: 18px;
+  height: 18px;
+  text-align: center;
+  display: flex;
+  font-size: small;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  display: inline-block;
+  position: relative;
+  cursor: pointer;
+  color: #888;
+  border: 1px solid #888;
+  border-radius: 50%;
+  padding: 0;
+  margin: 0;
+}
+.pod:after {
+  display: inline-block;
+  font-size: small;
+  width: 150px;
+  text-align: center;
+  padding: 10px 5px;
+  text-transform: uppercase;
+  content: '(picture of the day)';
+  position: absolute;
+  top: 0;
+  background-color: white;
+  border-radius: var(--border-radius);
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+  left: calc(100% + 10px);
+  visibility: hidden;
+}
+
+.pod:hover:after {
+  visibility: visible;
+}
+.showPicture {
+  width: 1px;
+  height: 1px;
+  appearance: none;
+  outline: none;
+}
+
+.showPicture:not(:checked) ~ .picture_container_background {
+  display: none;
+}
+
+.title {
+  padding: 5px;
+}
+
+.date {
+}
+.button:hover {
+  filter: drop-shadow(0 0 2px rgba(255, 255, 255, 1));
+}
+.button {
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-sizing: border-box;
+  padding: 0 10px;
+  position: absolute;
+  border: none;
+  background-color: transparent;
+  top: 10px;
+  right: 10px;
+  font-size: 1.5em;
+  color: white;
+}
