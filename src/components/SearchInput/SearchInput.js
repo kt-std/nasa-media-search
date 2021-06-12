@@ -1,21 +1,20 @@
-/** @jsx createElement */
-/** @jsxFrag createFragment */
-import { createElement, createFragment } from '../../framework';
-import render from '../../framework';
+import React from 'react';
 import styles from './style.css';
+import { useSearchValueContext } from '../../context';
 
-export default function SearchInput({ searchValue, setSearchValue }) {
+export default function SearchInput() {
+  const { searchInputValue, setSearchInputValue } = useSearchValueContext();
   return (
     <input
       type="text"
       id="searchInput"
       required
       placeholder='Search for ... (e.g. "M101")'
-      class={styles.search__input}
-      onchange={event => {
-        setSearchValue(event.target.value);
+      className={styles.search__input}
+      onChange={event => {
+        setSearchInputValue(event.target.value);
       }}
-      value={searchValue !== null ? searchValue : ``}
+      value={searchInputValue !== null ? searchInputValue : ``}
     />
   );
 }

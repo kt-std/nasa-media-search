@@ -4,14 +4,14 @@
   "description": "",
   "main": "index.html",
   "scripts": {
-    "start": "parcel ./src/index.html",
+    "start": "parcel src/index.html",
     "lint:js": "npx eslint --cache .",
     "lint:js:fix": "npm run lint:js -- --fix",
     "prettify": "npx prettier --write \"**/*.{js,css,md,html}\"",
     "lint": "npm run lint:js:fix && npm run prettify",
     "lint:staged": "npx lint-staged",
     "prebuild": "shx rm -rf dist/*",
-    "build": "parcel build ./src/index.html --public-url ./",
+    "build": "parcel build src/index.html --public-url ./",
     "deploy": "gh-pages -d dist"
   },
   "repository": {
@@ -25,7 +25,10 @@
     "url": "https://github.com/kt-std/nmse/issues"
   },
   "homepage": "https://github.com/kt-std/nmse#readme",
-  "dependencies": {},
+  "dependencies": {
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2"
+  },
   "devDependencies": {
     "@babel/core": "^7.13.14",
     "@babel/eslint-parser": "^7.13.14",
@@ -50,8 +53,6 @@
       [
         "@babel/plugin-transform-react-jsx",
         {
-          "pragma": "createElement",
-          "pragmaFRag": "createFragment",
           "throwIfNamespace": "true"
         }
       ]

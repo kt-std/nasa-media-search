@@ -6,13 +6,10 @@ import {
   changeBackground,
   setError,
 } from './mediaData';
-import renderApp from '../framework/renderer';
 import { replaceProtocolExtension, getItemByStringPattern } from '../utils';
 
-export async function requestMedia() {
+export async function requestMedia(mediaTypes, searchInputValue) {
   const data = {};
-  const searchInputValue = document.getElementById('searchInput').value,
-    mediaTypes = getMediaTypes();
   let requestURL = createRequestURL(searchInputValue, mediaTypes);
 
   const { responseData, error } = await getDataPages(requestURL);
@@ -68,7 +65,7 @@ async function getDataPages(requestURL) {
       })
       .catch(errMsg => {
         allRequestsMade = true;
-        error = { isError: true, errorText: errMsg };
+        error = { isError: true, errorText: errMsg.message || errMsg };
       });
   }
   return { responseData, error };

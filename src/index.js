@@ -1,7 +1,7 @@
-import { dataStore } from './data/dataStore.js';
+import React from 'react';
 import styles from './style.css';
-import { render } from './framework';
+import { render } from 'react-dom';
 import App from './components/App';
 
 //todo add pagination
-render(App, document.getElementById('app-root'));
+render(<App />, document.getElementById('app-root'));

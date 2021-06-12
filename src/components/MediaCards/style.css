@@ -8,8 +8,10 @@
   justify-content: center;
   position: relative;
   cursor: pointer;
+  transition: 0.5s;
   z-index: 1;
 }
+
 .card__item:hover {
   filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.4));
 }
@@ -165,4 +167,8 @@
 }
 .download:hover {
   background-color: var(--btn-hover);
+}
+
+.item_container:focus {
+  border: 10px green;
 }

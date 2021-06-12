@@ -1,45 +1,34 @@
-/** @jsx createElement */
-/** @jsxFrag createFragment */
-import { createElement, createFragment } from '../../framework';
+import React from 'react';
 import { searchByTerm } from '../../data/mediaData';
 import styles from './style.css';
 import MediaTypeSwitcher from '../MediaTypeSwitcher';
 import SearchInput from '../SearchInput';
 import SearchButton from '../SearchButton';
 import Logo from '../Logo';
+import { useSearchValueContext } from '../../context';
 
-export default function SearchLayout({
-  searchPosition,
-  searchParams,
-  data,
-  mediaRequest,
-  filter,
-  sort,
-  error,
-  media,
-}) {
+export default function SearchLayout({ searchPosition, media }) {
+  const { searchInputValue } = useSearchValueContext();
+  const { searchParams } = media;
   const searchPositionClass = searchPosition === 'top' ? styles.form_top : styles.form_middle,
     searchClasses = [styles.form__wrapper, searchPositionClass].join(' ');
   return (
     <>
-      <div class={searchClasses}>
+      <div className={searchClasses}>
         {searchPosition === 'top' ? <Logo media={media} /> : ``}
         <form
-          onsubmit={event => searchByTerm(error, data, mediaRequest, filter, sort, event)}
+          onSubmit={event => searchByTerm(searchInputValue, media, event)}
           id="searchForm"
-          class={styles.form}
+          className={styles.form}
         >
-          <div class={styles.search__box}>
+          <div className={styles.search__box}>
             <MediaTypeSwitcher
-              mediaTypes={searchParams.mediaTypes}
-              setMediaTypes={searchParams.setMediaTypes}
+              selectedMediaTypes={searchParams.selectedMediaTypes}
+              setSelectedMediaTypes={searchParams.setSelectedMediaTypes}
             />
-            <SearchInput
-              searchValue={searchParams.searchValue}
-              setSearchValue={searchParams.setSearchValue}
-            />
+            <SearchInput />
           </div>
-          <SearchButton mediaTypes={searchParams.mediaTypes} />
+          <SearchButton selectedMediaTypes={searchParams.selectedMediaTypes} />
         </form>
       </div>
     </>
