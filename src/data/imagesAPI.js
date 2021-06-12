@@ -65,7 +65,7 @@ async function getDataPages(requestURL) {
       })
       .catch(errMsg => {
         allRequestsMade = true;
-        error = { isError: true, errorText: errMsg };
+        error = { isError: true, errorText: errMsg.message || errMsg };
       });
   }
   return { responseData, error };

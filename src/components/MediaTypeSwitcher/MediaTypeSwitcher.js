@@ -15,7 +15,7 @@ export default function MediaTypeSwitcher({ selectedMediaTypes, setSelectedMedia
     <>
       <label className={styles.label}>
         <span className={styles.text}>
-          {selectedMediaTypes.length ? selectedMediaTypes.join(', ') : 'Media type'}
+          {selectedMediaTypes.length ? selectedMediaTypes.join(', ') : 'Set media type'}
         </span>
         <input
           id="showMenu"

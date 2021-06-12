@@ -5,9 +5,11 @@ import MediaTypeSwitcher from '../MediaTypeSwitcher';
 import SearchInput from '../SearchInput';
 import SearchButton from '../SearchButton';
 import Logo from '../Logo';
+import { useSearchValueContext } from '../../context';
 
 export default function SearchLayout({ searchPosition, media }) {
-  const { searchParams, data, mediaRequest, filter, sort, error } = media;
+  const { searchInputValue } = useSearchValueContext();
+  const { searchParams } = media;
   const searchPositionClass = searchPosition === 'top' ? styles.form_top : styles.form_middle,
     searchClasses = [styles.form__wrapper, searchPositionClass].join(' ');
   return (
@@ -15,9 +17,7 @@ export default function SearchLayout({ searchPosition, media }) {
       <div className={searchClasses}>
         {searchPosition === 'top' ? <Logo media={media} /> : ``}
         <form
-          onSubmit={event =>
-            searchByTerm(searchParams, error, data, mediaRequest, filter, sort, event)
-          }
+          onSubmit={event => searchByTerm(searchInputValue, media, event)}
           id="searchForm"
           className={styles.form}
         >
@@ -26,10 +26,7 @@ export default function SearchLayout({ searchPosition, media }) {
               selectedMediaTypes={searchParams.selectedMediaTypes}
               setSelectedMediaTypes={searchParams.setSelectedMediaTypes}
             />
-            <SearchInput
-              searchValue={searchParams.searchValue}
-              setSearchValue={searchParams.setSearchValue}
-            />
+            <SearchInput />
           </div>
           <SearchButton selectedMediaTypes={searchParams.selectedMediaTypes} />
         </form>

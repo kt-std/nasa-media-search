@@ -34,10 +34,11 @@ export function getBackground(dataItem) {
   return dataItem.previewImage !== null ? dataItem.previewImage : require('../../assets/audio.svg');
 }
 
-export function searchByTerm(searchParams, error, data, mediaRequest, filter, sort, e) {
+export function searchByTerm(searchInputValue, media, e) {
+  const { searchParams, error, data, mediaRequest, filter, sort } = media;
   e.preventDefault();
-  // const selectedMediaTypes = searchParams.selectedMediaTypes.slice();
   searchParams.setMediaTypes(searchParams.selectedMediaTypes);
+  searchParams.setSearchValue(searchInputValue);
   resetState(data, mediaRequest, sort, filter, error);
   mediaRequest.setIsDataLoading(true);
 }

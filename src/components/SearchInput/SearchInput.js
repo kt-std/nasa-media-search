@@ -1,7 +1,9 @@
 import React from 'react';
 import styles from './style.css';
+import { useSearchValueContext } from '../../context';
 
-export default function SearchInput({ searchValue, setSearchValue }) {
+export default function SearchInput() {
+  const { searchInputValue, setSearchInputValue } = useSearchValueContext();
   return (
     <input
       type="text"
@@ -10,9 +12,9 @@ export default function SearchInput({ searchValue, setSearchValue }) {
       placeholder='Search for ... (e.g. "M101")'
       className={styles.search__input}
       onChange={event => {
-        setSearchValue(event.target.value);
+        setSearchInputValue(event.target.value);
       }}
-      value={searchValue !== null ? searchValue : ``}
+      value={searchInputValue !== null ? searchInputValue : ``}
     />
   );
 }
