@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { updateData, sortMedia, filterItems } from './data/mediaData';
+import { updateData, sortMedia, filterItems, changeBackground } from './data/mediaData';
 import { requestMedia } from './data/imagesAPI';
 import { getPictureOfTheDay } from './data/apodAPI';
 
@@ -10,13 +10,19 @@ export const useMedia = () => {
     sort = useSort(),
     filter = useFilter(),
     mediaRequest = useMediaRequest(),
-    [apod, setApod] = useState({});
+    [apod, setApod] = useState({}),
+    [cache, setCache] = useState({});
 
   useEffect(() => {
     async function performRequest() {
       if (mediaRequest.isDataLoading) {
-        const dataReceived = await requestMedia(searchParams.mediaTypes, searchParams.searchValue);
+        const dataReceived = cache[searchParams.searchValue]
+          ? cache[searchParams.searchValue]
+          : await requestMedia(searchParams.mediaTypes, searchParams.searchValue);
         if (!dataReceived.isError) {
+          const cacheCopy = { ...cache };
+          cacheCopy[searchParams.searchValue] = dataReceived;
+          setCache(cacheCopy);
           updateData(dataReceived, data, filter, searchParams);
           mediaRequest.setRequestMade(true);
         } else {
@@ -24,6 +30,7 @@ export const useMedia = () => {
           error.setErrorMessage(dataReceived.errorText);
         }
         mediaRequest.setIsDataLoading(false);
+        changeBackground();
       }
     }
     performRequest();

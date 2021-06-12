@@ -3,7 +3,6 @@ import {
   setSelectedMediaTypes,
   getFiltersAndUpdate,
   getResponseData,
-  changeBackground,
   setError,
 } from './mediaData';
 import { replaceProtocolExtension, getItemByStringPattern } from '../utils';
@@ -75,7 +74,6 @@ export async function getAndPrepareMetadataForRendering(responseData) {
   const { data: metadataFromLinks, flattenedData, noResults } = await requestCollectionAndMetadata(
     responseData,
   );
-  changeBackground();
   if (!noResults && !metadataFromLinks.isError) {
     const { filters, totalHits } = await getFiltersAndUpdate(flattenedData, metadataFromLinks);
     return { filters, noResults, totalHits, flattenedData, isError: false };

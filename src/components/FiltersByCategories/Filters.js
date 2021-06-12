@@ -27,7 +27,6 @@ export default function Filters({ filter, data }) {
         </React.Fragment>
       );
     }
-    return <></>;
+    return null;
   });
 }
-// <FilterBlock filtersContent={filtersContent} filterName={filterName} />;
