@@ -1,17 +1,9 @@
-import {
-  getMediaTypes,
-  setSelectedMediaTypes,
-  getFiltersAndUpdate,
-  getResponseData,
-  setError,
-} from './mediaData';
+import { getFiltersAndUpdate, getResponseData } from './mediaData';
 import { replaceProtocolExtension, getItemByStringPattern } from '../utils';
 
 export async function requestMedia(mediaTypes, searchInputValue) {
-  const data = {};
-  let requestURL = createRequestURL(searchInputValue, mediaTypes);
-
-  const { responseData, error } = await getDataPages(requestURL);
+  const requestURL = createRequestURL(searchInputValue, mediaTypes),
+    { responseData, error } = await getDataPages(requestURL);
   if (!error.isError) {
     const dataReceived = await getAndPrepareMetadataForRendering(responseData);
     return { ...dataReceived, mediaTypes };
@@ -33,6 +25,7 @@ export async function requestCollectionAndMetadata(responseData) {
 
 async function getDataPages(requestURL) {
   let pagesCounter = 0,
+    maxPageNumber = 1,
     allRequestsMade = false,
     responseData = [],
     error = { isError: false, errorText: '' };
@@ -49,7 +42,7 @@ async function getDataPages(requestURL) {
       .then(responseBody => {
         if (responseBody.collection.links) {
           const { nextPageLinkIndex, hasPage } = hasNextPage(responseBody.collection.links);
-          if (pagesCounter === 1 || !hasPage) {
+          if (pagesCounter === maxPageNumber || !hasPage) {
             allRequestsMade = true;
           } else {
             requestURL = replaceProtocolExtension(
@@ -121,9 +114,7 @@ function getAllPromisesData(data) {
 
 function hasNextPage(linksList) {
   const nextPageLinkIndex = linksList.findIndex((linkItem, i) => linkItem.rel === 'next');
-  return nextPageLinkIndex !== -1
-    ? { hasPage: true, nextPageLinkIndex }
-    : { hasPage: false, nextPageLinkIndex };
+  return { hasPage: nextPageLinkIndex !== -1, nextPageLinkIndex };
 }
 
 function createRequestURL(searchInputValue, mediaTypes) {
