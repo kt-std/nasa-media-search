@@ -1,6 +1,14 @@
 import { useState, useEffect } from 'react';
-import { updateData, sortMedia, filterItems } from './data/mediaData';
+import {
+  updateData,
+  sortMedia,
+  filterItems,
+  changeBackground,
+  isDataCached,
+  updateCache,
+} from './data/mediaData';
 import { requestMedia } from './data/imagesAPI';
+import { getPictureOfTheDay } from './data/apodAPI';
 
 export const useMedia = () => {
   const searchParams = useSearchParams(),
@@ -8,13 +16,18 @@ export const useMedia = () => {
     error = useError(),
     sort = useSort(),
     filter = useFilter(),
-    mediaRequest = useMediaRequest();
+    mediaRequest = useMediaRequest(),
+    [apod, setApod] = useState({}),
+    [cache, setCache] = useState({});
 
   useEffect(() => {
     async function performRequest() {
       if (mediaRequest.isDataLoading) {
-        const dataReceived = await requestMedia(searchParams.mediaTypes, searchParams.searchValue);
+        const dataReceived = isDataCached(searchParams.mediaTypes, searchParams.searchValue, cache)
+          ? cache[searchParams.searchValue].data
+          : await requestMedia(searchParams.mediaTypes, searchParams.searchValue);
         if (!dataReceived.isError) {
+          updateCache(cache, setCache, searchParams, dataReceived);
           updateData(dataReceived, data, filter, searchParams);
           mediaRequest.setRequestMade(true);
         } else {
@@ -22,12 +35,18 @@ export const useMedia = () => {
           error.setErrorMessage(dataReceived.errorText);
         }
         mediaRequest.setIsDataLoading(false);
+        changeBackground();
       }
     }
     performRequest();
   }, [mediaRequest.isDataLoading]);
 
-  return { searchParams, data, error, sort, filter, mediaRequest };
+  useEffect(async () => {
+    const apodData = await getPictureOfTheDay();
+    setApod(apodData);
+  }, []);
+
+  return { searchParams, data, error, sort, filter, mediaRequest, apod };
 };
 
 export const useMediaRequest = () => {
@@ -91,7 +110,6 @@ export const useFilter = () => {
   const [filters, setFilters] = useState({});
   const [selectedFiltersList, setSelectedFiltersList] = useState([]);
   const [filtersSelected, setFiltersSelected] = useState(false);
-  const [performFiltering, setPerformFiltering] = useState(false);
   return {
     filters,
     setFilters,
@@ -99,8 +117,6 @@ export const useFilter = () => {
     setSelectedFiltersList,
     filtersSelected,
     setFiltersSelected,
-    performFiltering,
-    setPerformFiltering,
   };
 };
 
@@ -108,4 +124,9 @@ export const useError = () => {
   const [isError, setIsError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   return { isError, setIsError, errorMessage, setErrorMessage };
+};
+
+export const useSearchInputValue = () => {
+  const [searchInputValue, setSearchInputValue] = useState('');
+  return { searchInputValue, setSearchInputValue };
 };

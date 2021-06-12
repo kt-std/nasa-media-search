@@ -1,7 +1,7 @@
 import React from 'react';
-import { sortMedia } from '../../data/mediaData';
 import styles from './style.css';
 import SortOptions from './SortOptions';
+import { sortMedia } from '../../data/mediaData';
 
 export default function SortSelect({ data, sort, filter, mediaTypes }) {
   return (
@@ -10,16 +10,10 @@ export default function SortSelect({ data, sort, filter, mediaTypes }) {
       <select
         name="mediaSort"
         id="mediaSort"
-        onChange={e => {
-          sortMedia(data, sort, filter, e);
-        }}
+        onChange={e => sortMedia(data, sort, filter, e)}
         value={sort.sortingOption || ''}
       >
-        <SortOptions
-          isSortingSet={sort.isSortingSet}
-          sortingOption={sort.sortingOption}
-          mediaTypes={mediaTypes}
-        />
+        <SortOptions mediaTypes={mediaTypes} />
       </select>
     </label>
   );

@@ -1,10 +1,11 @@
 import React from 'react';
-import { searchByTerm } from '../../data/mediaData';
 import styles from './style.css';
-import MediaTypeSwitcher from '../MediaTypeSwitcher';
+import Logo from '../Logo';
 import SearchInput from '../SearchInput';
 import SearchButton from '../SearchButton';
-import Logo from '../Logo';
+import PictureOfTheDay from '../PictureOfTheDay';
+import MediaTypeSwitcher from '../MediaTypeSwitcher';
+import { searchByTerm } from '../../data/mediaData';
 import { useSearchValueContext } from '../../context';
 
 export default function SearchLayout({ searchPosition, media }) {
@@ -15,7 +16,12 @@ export default function SearchLayout({ searchPosition, media }) {
   return (
     <>
       <div className={searchClasses}>
-        {searchPosition === 'top' ? <Logo media={media} /> : ``}
+        {searchPosition === 'top' ? (
+          <>
+            <Logo media={media} />
+            <PictureOfTheDay apod={media.apod} />
+          </>
+        ) : null}
         <form
           onSubmit={event => searchByTerm(searchInputValue, media, event)}
           id="searchForm"

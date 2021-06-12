@@ -1,8 +1,8 @@
 import React from 'react';
 import styles from './style.css';
 import SearchLayout from '../SearchLayout';
-import FiltersByCategories from '../FiltersByCategories';
 import ResponseContent from './ResponseContent';
+import FiltersByCategories from '../FiltersByCategories';
 
 export default function ResponseLayout({ searchPosition, media }) {
   return (
@@ -17,9 +17,3 @@ export default function ResponseLayout({ searchPosition, media }) {
     </>
   );
 }
-/*
-
-        
-
-*/
-//TODO: fix and add noResults isError

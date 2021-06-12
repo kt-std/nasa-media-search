@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import styles from './style.css';
 import Card from './Card';
-import { useDataContext } from '../../context';
 
 export default function MediaCards({ data }) {
   const mediaData = !data.filteredData.length ? data.flattenedData : data.filteredData;

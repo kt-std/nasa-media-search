@@ -47,3 +47,7 @@ export function getItemByStringPattern(str, data) {
 export function keywordIsASingleWord(keyword) {
   return keyword.split(' ').length === 1 && !parseInt(keyword);
 }
+
+export function arraysEqual(a1, a2) {
+  return JSON.stringify(a1) == JSON.stringify(a2);
+}

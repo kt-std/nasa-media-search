@@ -1,7 +1,6 @@
 import React from 'react';
-import { filterItems } from '../../data/mediaData';
-
 import styles from './style.css';
+import { filterItems } from '../../data/mediaData';
 
 export default function FilterButton({ data, filter }) {
   return (
