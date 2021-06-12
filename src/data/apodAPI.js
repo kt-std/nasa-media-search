@@ -9,7 +9,7 @@ export async function getPictureOfTheDay() {
       }
     })
     .then(pictureData => pictureData)
-    .catch(err => ({ isError: true, errorMessage: error.message }));
+    .catch(err => ({ isError: true, errorMessage: err.message }));
   if (!pictureData.isError) {
     const { thumbnail_url, title, date, url } = pictureData;
     return pictureData.media_type === 'video'
