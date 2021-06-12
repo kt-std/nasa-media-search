@@ -32,8 +32,8 @@ This application provides functionality to perform a search of media resources s
 :sparkles: - implemented features
 
 # Installation
-1. Download the code from the `master` branch (as it contains assets) 
+1. Download the code from the `main` branch 
 2. Unpack the code to the destination folder
-3. Open the destination folder and run `npm i`
+3. Open the destination folder and run `npm i` or `npm install`
 4. After the packages installation run `npm run start` or `npm start`
 5. By default, code will run at `localhost:1234` 
