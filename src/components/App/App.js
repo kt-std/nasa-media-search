@@ -3,10 +3,9 @@ import ResponseLayout from '../ResponseLayout';
 import Loader from '../Loader';
 import SearchLayout from '../SearchLayout';
 import { requestMedia } from '../../data/imagesAPI';
-import { useMedia } from '../../framework/customHooks';
+import { useMedia } from '../../customHooks';
 
 import { MediaTypesContext } from '../../context';
-import { DataContext } from '../../context';
 
 export default function App() {
   const media = useMedia();

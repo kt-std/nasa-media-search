@@ -1,5 +1,4 @@
 import React from 'react';
-import render from '../../framework';
 import styles from './style.css';
 
 export default function SearchInput({ searchValue, setSearchValue }) {

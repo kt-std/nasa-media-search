@@ -19,7 +19,7 @@
   text-overflow: ellipsis;
 }
 .label:focus-within {
-  background-color: #e0e0e0;
+  background-color: #ccc;
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
 }
 

@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
-// import { useState, useEffect } from './hooks';
-import { updateData, sortMedia, filterItems } from '../data/mediaData';
-import { requestMedia } from '../data/imagesAPI';
+import { updateData, sortMedia, filterItems } from './data/mediaData';
+import { requestMedia } from './data/imagesAPI';
 
 export const useMedia = () => {
   const searchParams = useSearchParams(),
