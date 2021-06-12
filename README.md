@@ -6,7 +6,7 @@ This application provides functionality to perform a search of media resources s
 - [About](#nasa-media-search-engine-nmse-rocket)
 - [Key features](#key-features-key)
 - [Additional features](#additional-features-star2)
-- [Upcoming features](upcoming-features-fire)
+- [Upcoming features](#upcoming-features-fire)
 - [Installation](#installation)
 
 ## Key features :key:
