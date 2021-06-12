@@ -128,3 +128,8 @@ export const useError = () => {
   const [errorMessage, setErrorMessage] = useState('');
   return { isError, setIsError, errorMessage, setErrorMessage };
 };
+
+export const useSearchInputValue = () => {
+  const [searchInputValue, setSearchInputValue] = useState('');
+  return { searchInputValue, setSearchInputValue };
+};

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import styles from './style.css';
-import { setBackground } from '../../data/mediaData';
+import { setBackground, setOpositeState } from '../../data/mediaData';
 
 export default function PictureOfTheDay({ apod }) {
   const [showPicture, setShowPicture] = useState(false);
@@ -10,24 +10,18 @@ export default function PictureOfTheDay({ apod }) {
         id="check"
         type="checkbox"
         checked={showPicture}
-        onChange={e => {
-          const pictureState = showPicture;
-          setShowPicture(!pictureState);
-        }}
+        onChange={e => setOpositeState(showPicture, setShowPicture)}
         className={styles.showPicture}
       />
       <label htmlFor="check" className={styles.checkbox}>
-        pod
+        show pod
       </label>
       <span className={styles.pod}>i</span>
       <div className={styles.picture_container_background}>
         <div className={styles.picture_container}>
           <button
             className={styles.button}
-            onClick={e => {
-              const pictureState = showPicture;
-              setShowPicture(!pictureState);
-            }}
+            onClick={e => setOpositeState(showPicture, setShowPicture)}
           >
             x
           </button>

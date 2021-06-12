@@ -440,3 +440,15 @@ export function updateCache(cache, setCache, searchParams, dataReceived) {
 function arraysEqual(a1, a2) {
   return JSON.stringify(a1) == JSON.stringify(a2);
 }
+
+export function showDescriptionOnKeyPress(e, style, descriptionId) {
+  if (e.key === ' ' || e.key === 'Enter') {
+    e.preventDefault();
+    showDescription(style, descriptionId, e);
+  }
+}
+
+export function setOpositeState(value, setCB) {
+  const valueCopy = value;
+  setCB(!valueCopy);
+}

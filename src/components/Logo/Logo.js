@@ -1,6 +1,6 @@
 import React from 'react';
-import { openHomePage } from '../../data/mediaData';
 import styles from './style.css';
+import { openHomePage } from '../../data/mediaData';
 import { useSearchValueContext } from '../../context';
 
 export default function Logo({ media }) {

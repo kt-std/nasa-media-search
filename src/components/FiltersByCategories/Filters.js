@@ -1,8 +1,8 @@
 import React from 'react';
 import styles from './style.css';
+import FilterItem from './FilterItem';
 import { hasFilteringParameters } from '../../utils.js';
 import { FILTERS_TEXT } from '../../data/dataSettings';
-import FilterItem from './FilterItem';
 
 export default function Filters({ filter, data }) {
   const { filters } = filter;

@@ -1,7 +1,6 @@
 import React from 'react';
-import { removeFilter } from '../../data/mediaData';
 import styles from './style.css';
-import { AppContext } from '../../context';
+import { removeFilter } from '../../data/mediaData';
 
 export default function SelectedFilter({ data, filter, filterItem }) {
   return (
@@ -11,9 +10,7 @@ export default function SelectedFilter({ data, filter, filterItem }) {
       </span>
       <button
         className={styles.remove__filter}
-        onClick={event => {
-          removeFilter(data, filter.selectedFiltersList, filter, event);
-        }}
+        onClick={event => removeFilter(data, filter.selectedFiltersList, filter, event)}
         value={filterItem.value}
         data-categorie={filterItem.categorie}
       >

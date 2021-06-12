@@ -7,7 +7,5 @@ export default function FiltersByCategories({ data, filter }) {
     <form id="filters" className={styles.filters__wrapper}>
       <Filters data={data} filter={filter} />
     </form>
-  ) : (
-    ''
-  );
+  ) : null;
 }

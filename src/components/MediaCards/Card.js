@@ -6,6 +6,7 @@ import {
   getBackground,
   setBackground,
   getCardStyling,
+  showDescriptionOnKeyPress,
 } from '../../data/mediaData';
 import CardDescription from './CardDescription';
 
@@ -24,12 +25,7 @@ export default function Card({ dataItem, index }) {
         style={background}
         data-title={dataItem.title}
         data-index={index}
-        onKeyPress={e => {
-          if (e.key === ' ' || e.key === 'Enter') {
-            e.preventDefault();
-            showDescription(styles.visible, descriptionId, e);
-          }
-        }}
+        onKeyPress={e => showDescriptionOnKeyPress(e, styles.visible, descriptionId)}
       ></div>
       <CardDescription index={index} dataItem={dataItem} />
     </div>
