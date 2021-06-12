@@ -110,7 +110,6 @@ export const useFilter = () => {
   const [filters, setFilters] = useState({});
   const [selectedFiltersList, setSelectedFiltersList] = useState([]);
   const [filtersSelected, setFiltersSelected] = useState(false);
-  const [performFiltering, setPerformFiltering] = useState(false);
   return {
     filters,
     setFilters,
@@ -118,8 +117,6 @@ export const useFilter = () => {
     setSelectedFiltersList,
     filtersSelected,
     setFiltersSelected,
-    performFiltering,
-    setPerformFiltering,
   };
 };
 

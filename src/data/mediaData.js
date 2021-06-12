@@ -1,41 +1,21 @@
 import {
   MEDIA_TYPE_SORTING_OPTIONS,
   MEDATADA_KEYS_BY_MEDIA_TYPE,
-  SORTING_OPTIONS_TEXT,
-  FILTERS_TEXT,
   FILTERS_BY_MEDIA_TYPE,
-  RESPONSE_DATA_FILES,
 } from './dataSettings';
+
 import {
-  hasFilteringParameters,
   getNumberFromString,
   getSeconds,
-  getParametersValueFromNodeList,
   removeClass,
   addClass,
+  arraysEqual,
   removeSpacesFromLink,
   isElementInArray,
   keywordIsASingleWord,
 } from '../utils';
-import { requestMedia } from './imagesAPI';
+
 import styles from '/style.css';
-
-export function needToBeChecked(selectedMediaTypesValue, mediaType) {
-  return selectedMediaTypesValue.length && selectedMediaTypesValue.indexOf(mediaType) !== -1
-    ? true
-    : false;
-}
-
-export function getCardStyling(mediaType, styles) {
-  return mediaType === 'audio' ? styles.audio : mediaType === 'video' ? styles.video : styles.image;
-}
-
-export function getBackground(dataItem) {
-  return dataItem.previewImage !== null ? dataItem.previewImage : require('../../assets/audio.svg');
-}
-export function setBackground(url) {
-  return { backgroundImage: `url(${url}` };
-}
 
 export function searchByTerm(searchInputValue, media, e) {
   const { searchParams, error, data, mediaRequest, filter, sort } = media;
@@ -133,7 +113,6 @@ export function removeFilter(data, selectedFilters, filter, e) {
     );
   selectedFiltersList.splice(deleteIndex, 1);
   if (!selectedFiltersList.length) {
-    filter.setPerformFiltering(false);
     filter.setFiltersSelected(false);
     data.setFilteredData([]);
     data.setTotalHits(data.flattenedData.length);
@@ -151,24 +130,23 @@ export function resetState(data, mediaRequest, sort, filter, error) {
   sort.setIsSortingSet(false);
   error.setIsError(false);
   filter.setSelectedFiltersList([]);
-  filter.setPerformFiltering(false);
   filter.setFiltersSelected(false);
   filter.setFilters({});
 }
 
-export function setError(errMessage, mediaRequest, error) {
-  mediaRequest.setIsDataLoading(false);
-  mediaRequest.setAllRequestsMade(true);
-  error.setIsError(true);
-  error.setErrorMessage(`Ooops!..${errMessage}.<br/>Try to reload the page`);
+export function getCardStyling(mediaType, styles) {
+  return mediaType === 'audio' ? styles.audio : mediaType === 'video' ? styles.video : styles.image;
+}
+
+export function getBackground(dataItem) {
+  return dataItem.previewImage !== null ? dataItem.previewImage : require('../../assets/audio.svg');
+}
+export function setBackground(url) {
+  return { backgroundImage: `url(${url}` };
 }
 
 export function changeBackground() {
   addClass(`${styles.no_image__background}`, document.body);
-}
-
-export function updateFocusState(focusOnFilter) {
-  if (focusOnFilter !== null) document.querySelector(`[name="${focusOnFilter}"]`).focus();
 }
 
 export function isFilterSelected(filtersSelected, filterName, categorie) {
@@ -177,6 +155,10 @@ export function isFilterSelected(filtersSelected, filterName, categorie) {
   )
     ? 'checked'
     : null;
+}
+
+export function needToBeChecked(selectedMediaTypesValue, mediaType) {
+  return !!(selectedMediaTypesValue.length && selectedMediaTypesValue.indexOf(mediaType) !== -1);
 }
 
 export function isOptionNeeded(mediaTypes, option) {
@@ -280,14 +262,6 @@ function updateFilterValue(filtersContainer, keyword) {
   }
 }
 
-export function setSelectedMediaTypes(mediaTypes) {
-  return mediaTypes.length ? mediaTypes : null;
-}
-
-function getOnlySingleWordKeyword(keywords) {
-  return keywords ? keywords.filter(keyword => keywordIsASingleWord(keyword)) : 'unknown';
-}
-
 function transformKeyValueToNumber(key, dataItem, metadataValue) {
   if (metadataValue) {
     switch (key) {
@@ -316,6 +290,10 @@ function transformKeyValueToNumber(key, dataItem, metadataValue) {
   } else {
     dataItem[key] = metadataValue;
   }
+}
+
+function getOnlySingleWordKeyword(keywords) {
+  return keywords ? keywords.filter(keyword => keywordIsASingleWord(keyword)) : 'unknown';
 }
 
 function getCreatorsList(creator) {
@@ -382,6 +360,7 @@ export function leaveItemShown(e, id, style) {
     document.getElementById(id).classList.remove(style);
   }
 }
+
 export function blurFromItem(e, style) {
   e.target.classList.contains(style)
     ? e.target.classList.remove(style)
@@ -435,10 +414,6 @@ export function updateCache(cache, setCache, searchParams, dataReceived) {
   const cacheCopy = { ...cache };
   cacheCopy[searchParams.searchValue] = { data: dataReceived, mediaTypes: searchParams.mediaTypes };
   setCache(cacheCopy);
-}
-
-function arraysEqual(a1, a2) {
-  return JSON.stringify(a1) == JSON.stringify(a2);
 }
 
 export function showDescriptionOnKeyPress(e, style, descriptionId) {
