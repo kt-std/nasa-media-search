@@ -32,8 +32,6 @@ export function openHomePage(media, setSearchInputValue, e) {
   mediaRequest.setRequestMade(false);
   searchParams.setSearchValue(null);
   setSearchInputValue('');
-  searchParams.setMediaTypes([]);
-  searchParams.setSelectedMediaTypes([]);
   resetState(data, mediaRequest, sort, filter, error);
   removeClass(`${styles.no_image__background}`, document.body);
 }
