@@ -1,19 +1,21 @@
 export async function getPictureOfTheDay() {
   try {
-    const requestURL = `https://api.nasa.gov/planetary/apod?api_key=${process.env.NASA_APOD_KEY}&thumbs=true&start_date=2021-06-13&end_date=2021-06-13`;
+    const requestURL = `https://api.nasa.gov/planetary/apod?api_key=${process.env.NASA_APOD_KEY}&thumbs=true`;
     const response = await fetch(requestURL);
     if (!response.ok) {
       throw new Error(
         `An error occured while trying to fetch data from APOD API. Status: ${response.status}`,
       );
     } else {
-      const pictureData = await response.json();
-      const { thumbnail_url, title, date, url } = pictureData;
-      return pictureData.media_type === 'video'
-        ? { imageURL: thumbnail_url, title, date, isError: false }
-        : { imageURL: url, title, date, isError: false };
+      const { thumbnail_url, title, date, url, media_type } = await response.json();
+      return {
+        imageURL: media_type === 'video' ? thumbnail_url : url,
+        title,
+        date,
+        responseOk: true,
+      };
     }
   } catch (err) {
-    return { isError: true, errorMessage: err.message };
+    return { responseOk: false, errorMessage: err.message };
   }
 }

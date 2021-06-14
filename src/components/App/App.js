@@ -10,23 +10,21 @@ export default function App() {
   const media = useMedia();
   const searchInput = useSearchInputValue();
   return (
-    <>
-      <SearchValueContext.Provider
-        value={{
-          searchInputValue: searchInput.searchInputValue,
-          setSearchInputValue: searchInput.setSearchInputValue,
-        }}
-      >
-        {media.mediaRequest.requestMade ? (
-          <ResponseLayout searchPosition={'top'} media={media} />
-        ) : media.mediaRequest.isDataLoading ? (
-          <Loader />
-        ) : media.error.isError ? (
-          <Loader text={media.error.errorMessage} />
-        ) : (
-          <SearchLayout searchPosition={'middle'} media={media} />
-        )}
-      </SearchValueContext.Provider>
-    </>
+    <SearchValueContext.Provider
+      value={{
+        searchInputValue: searchInput.searchInputValue,
+        setSearchInputValue: searchInput.setSearchInputValue,
+      }}
+    >
+      {media.mediaRequest.requestMade ? (
+        <ResponseLayout searchPosition={'top'} media={media} />
+      ) : media.mediaRequest.isDataLoading ? (
+        <Loader />
+      ) : !media.error.responseOk ? (
+        <Loader text={media.error.errorMessage} />
+      ) : (
+        <SearchLayout searchPosition={'middle'} media={media} />
+      )}
+    </SearchValueContext.Provider>
   );
 }

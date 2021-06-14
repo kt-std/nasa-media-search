@@ -111,7 +111,6 @@ export const SEARCH_HINTS = [
   'event horizon',
   'exoplanet',
   'extragalactic',
-  'F',
   'falling star',
   'flare',
   'flyby',

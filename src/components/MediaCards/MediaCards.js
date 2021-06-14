@@ -7,7 +7,7 @@ export default function MediaCards({ data }) {
   return (
     <div className={styles.cards_wrapper}>
       {mediaData.map((dataItem, i, arr) => (
-        <Card dataItem={dataItem} index={i} key={i} />
+        <Card dataItem={dataItem} index={i} key={`card_${i}`} />
       ))}
     </div>
   );

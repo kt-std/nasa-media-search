@@ -1,12 +1,7 @@
 import { useState, useEffect } from 'react';
-import {
-  updateData,
-  sortMedia,
-  filterItems,
-  changeBackground,
-  isDataCached,
-  updateCache,
-} from './data/mediaData';
+import { updateData, sortMedia, filterItems, isDataCached, updateCache } from './data/mediaData';
+import styles from './style.css';
+import { changeBackground } from './utils';
 import { requestMedia } from './data/imagesAPI';
 import { getPictureOfTheDay } from './data/apodAPI';
 
@@ -26,16 +21,16 @@ export const useMedia = () => {
         const dataReceived = isDataCached(searchParams.mediaTypes, searchParams.searchValue, cache)
           ? cache[searchParams.searchValue].data
           : await requestMedia(searchParams.mediaTypes, searchParams.searchValue);
-        if (!dataReceived.isError) {
+        if (dataReceived.responseOk) {
           updateCache(cache, setCache, searchParams, dataReceived);
           updateData(dataReceived, data, filter, searchParams);
           mediaRequest.setRequestMade(true);
         } else {
-          error.setIsError(true);
+          error.setResponseOk(false);
           error.setErrorMessage(dataReceived.errorText);
         }
         mediaRequest.setIsDataLoading(false);
-        changeBackground();
+        changeBackground(styles.no_image__background);
       }
     }
     performRequest();
@@ -83,7 +78,6 @@ export const useData = requestMade => {
   const [responseData, setResponseData] = useState([]);
   const [flattenedData, setFlattenedData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
-  const [noResults, setNoResults] = useState(false);
   const [totalHits, setTotalHits] = useState(null);
 
   return {
@@ -93,8 +87,6 @@ export const useData = requestMade => {
     setFlattenedData,
     filteredData,
     setFilteredData,
-    noResults,
-    setNoResults,
     totalHits,
     setTotalHits,
   };
@@ -121,9 +113,9 @@ export const useFilter = () => {
 };
 
 export const useError = () => {
-  const [isError, setIsError] = useState(false);
+  const [responseOk, setResponseOk] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
-  return { isError, setIsError, errorMessage, setErrorMessage };
+  return { responseOk, setResponseOk, errorMessage, setErrorMessage };
 };
 
 export const useSearchInputValue = () => {

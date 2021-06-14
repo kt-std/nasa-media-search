@@ -24,10 +24,6 @@ export function replaceProtocolExtension(link) {
   return link.replace(/(http)/gm, 'https');
 }
 
-export function flat(array) {
-  return array.reduce((acc, current) => acc.concat(current), []);
-}
-
 export function getParametersValueFromNodeList(parameter, nodeList) {
   return Array.from(nodeList).map(item => item[parameter]);
 }
@@ -41,7 +37,8 @@ export function addClass(className, element) {
 }
 
 export function getItemByStringPattern(str, data) {
-  return data[data.findIndex(dataItem => dataItem.includes(str))];
+  const re = new RegExp(str);
+  return data.find(item => re.test(item));
 }
 
 export function keywordIsASingleWord(keyword) {
@@ -50,4 +47,8 @@ export function keywordIsASingleWord(keyword) {
 
 export function arraysEqual(a1, a2) {
   return JSON.stringify(a1) == JSON.stringify(a2);
+}
+
+export function changeBackground(className) {
+  addClass(className, document.body);
 }
