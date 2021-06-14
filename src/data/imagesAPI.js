@@ -30,16 +30,12 @@ async function getDataPages(requestURL) {
     responseData = [],
     error = { isError: false, errorText: '' };
   while (!allRequestsMade) {
-    await fetch(requestURL)
-      .then(response => {
-        if (response.ok) {
-          return response.json();
-        } else {
-          allRequestsMade = true;
-          throw Error(response);
-        }
-      })
-      .then(responseBody => {
+    try {
+      const response = await fetch(requestURL);
+      if (!response.ok) {
+        throw new Error(response.statusText);
+      } else {
+        const responseBody = await response.json();
         if (responseBody.collection.links) {
           const { nextPageLinkIndex, hasPage } = hasNextPage(responseBody.collection.links);
           if (pagesCounter === maxPageNumber || !hasPage) {
@@ -54,11 +50,11 @@ async function getDataPages(requestURL) {
           allRequestsMade = true;
         }
         responseData = responseData.concat(responseBody.collection.items);
-      })
-      .catch(errMsg => {
-        allRequestsMade = true;
-        error = { isError: true, errorText: errMsg.message || errMsg };
-      });
+      }
+    } catch (errMsg) {
+      allRequestsMade = true;
+      error = { isError: true, errorText: errMsg.message || errMsg };
+    }
   }
   return { responseData, error };
 }
@@ -75,7 +71,7 @@ export async function getAndPrepareMetadataForRendering(responseData) {
 }
 
 async function getCollectionData(flattenedData) {
-  const requests = await flattenedData.map(dataItem => fetch(dataItem.href));
+  const requests = flattenedData.map(dataItem => fetch(dataItem.href));
   const data = await getAllPromisesData(requests);
   return data;
 }

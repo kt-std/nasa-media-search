@@ -20,7 +20,9 @@ import styles from '/style.css';
 export function searchByTerm(searchInputValue, media, e) {
   const { searchParams, error, data, mediaRequest, filter, sort } = media;
   e.preventDefault();
-  searchParams.setMediaTypes(searchParams.selectedMediaTypes);
+  searchParams.selectedMediaTypes.length
+    ? searchParams.setMediaTypes(searchParams.selectedMediaTypes)
+    : searchParams.setMediaTypes(['image', 'video', 'audio']);
   searchParams.setSearchValue(searchInputValue);
   resetState(data, mediaRequest, sort, filter, error);
   mediaRequest.setIsDataLoading(true);
