@@ -1,8 +1,8 @@
 import React from 'react';
 import styles from './style.css';
 import FilterItem from './FilterItem';
-import { hasFilteringParameters } from '../../utils.js';
 import { FILTERS_TEXT } from '../../data/dataSettings';
+import { hasFilteringParameters } from '../../utils.js';
 
 export default function Filters({ filter, data }) {
   const { filters } = filter;
@@ -13,7 +13,7 @@ export default function Filters({ filter, data }) {
           <h3 className={styles.filter__heading}>{FILTERS_TEXT[filterName]}</h3>
           <div className={styles.filter__item_wrapper}>
             {Object.keys(filters[filterName]).map((filterContent, i) => (
-              <React.Fragment key={Math.random() * 1000}>
+              <React.Fragment key={`filter_${Math.random() * 1000}`}>
                 <FilterItem
                   filterName={filterContent}
                   filterCounter={filters[filterName][filterContent]}

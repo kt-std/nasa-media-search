@@ -4,7 +4,7 @@ import { replaceProtocolExtension, getItemByStringPattern } from '../utils';
 export async function requestMedia(mediaTypes, searchInputValue) {
   const requestURL = createRequestURL(searchInputValue, mediaTypes),
     { responseData, error } = await getDataPages(requestURL);
-  if (!error.isError) {
+  if (error.responseOk) {
     const dataReceived = await getAndPrepareMetadataForRendering(responseData);
     return { ...dataReceived, mediaTypes };
   }
@@ -12,15 +12,13 @@ export async function requestMedia(mediaTypes, searchInputValue) {
 }
 
 export async function requestCollectionAndMetadata(responseData) {
-  let noResults = false;
   const flattenedData = getResponseData(responseData);
-  if (!flattenedData.length) noResults = true;
   const collectionData = await getCollectionData(flattenedData);
-  if (!collectionData.isError) {
-    const metadataFromLinks = await getMetadata(flattenedData, collectionData);
-    return { data: metadataFromLinks, flattenedData, noResults };
+  if (collectionData.responseOk) {
+    const metadataFromLinks = await getMetadata(flattenedData, collectionData.data);
+    return { data: metadataFromLinks, flattenedData };
   }
-  return { data: collectionData, flattenedData, noResults };
+  return { data: collectionData, flattenedData };
 }
 
 async function getDataPages(requestURL) {
@@ -28,18 +26,14 @@ async function getDataPages(requestURL) {
     maxPageNumber = 1,
     allRequestsMade = false,
     responseData = [],
-    error = { isError: false, errorText: '' };
+    error = { responseOk: true, errorText: '' };
   while (!allRequestsMade) {
-    await fetch(requestURL)
-      .then(response => {
-        if (response.ok) {
-          return response.json();
-        } else {
-          allRequestsMade = true;
-          throw Error(response);
-        }
-      })
-      .then(responseBody => {
+    try {
+      const response = await fetch(requestURL);
+      if (!response.ok) {
+        throw new Error(response.statusText);
+      } else {
+        const responseBody = await response.json();
         if (responseBody.collection.links) {
           const { nextPageLinkIndex, hasPage } = hasNextPage(responseBody.collection.links);
           if (pagesCounter === maxPageNumber || !hasPage) {
@@ -54,30 +48,29 @@ async function getDataPages(requestURL) {
           allRequestsMade = true;
         }
         responseData = responseData.concat(responseBody.collection.items);
-      })
-      .catch(errMsg => {
-        allRequestsMade = true;
-        error = { isError: true, errorText: errMsg.message || errMsg };
-      });
+      }
+    } catch (errMsg) {
+      allRequestsMade = true;
+      error = { responseOk: false, errorText: errMsg.message || errMsg };
+    }
   }
   return { responseData, error };
 }
 
 export async function getAndPrepareMetadataForRendering(responseData) {
-  const { data: metadataFromLinks, flattenedData, noResults } = await requestCollectionAndMetadata(
+  const { data: metadataFromLinks, flattenedData } = await requestCollectionAndMetadata(
     responseData,
   );
-  if (!noResults && !metadataFromLinks.isError) {
-    const { filters, totalHits } = await getFiltersAndUpdate(flattenedData, metadataFromLinks);
-    return { filters, noResults, totalHits, flattenedData, isError: false };
+  if (flattenedData.length && metadataFromLinks.responseOk) {
+    const { filters, totalHits } = await getFiltersAndUpdate(flattenedData, metadataFromLinks.data);
+    return { filters, totalHits, flattenedData, responseOk: true };
   }
-  return { filters: {}, noResults, totalHits: null, flattenedData: [], ...metadataFromLinks };
+  return { filters: {}, totalHits: null, flattenedData: [], ...metadataFromLinks };
 }
 
 async function getCollectionData(flattenedData) {
-  const requests = await flattenedData.map(dataItem => fetch(dataItem.href));
-  const data = await getAllPromisesData(requests);
-  return data;
+  const requests = flattenedData.map(dataItem => fetch(dataItem.href));
+  return getAllPromisesData(requests);
 }
 
 function getMetadataPromisesFromCollectionList(flattenedData, collectionData) {
@@ -95,21 +88,24 @@ function getMetadata(flattenedData, collectionData) {
   return getAllPromisesData(metadataFetchedLinks);
 }
 
-function getAllPromisesData(data) {
-  const error = { isError: true, errorText: 'Try to reload the page' };
-  return Promise.all(data)
-    .then(responseData =>
-      Promise.all(
-        responseData.map(responseDataItem => {
-          if (responseDataItem.ok) {
-            return responseDataItem.json();
-          } else {
-            throw Error(responseData);
-          }
-        }),
-      ).catch(err => error),
-    )
-    .catch(err => error);
+async function getAllPromisesData(data) {
+  const error = { responseOk: false, errorText: 'Try to reload the page' },
+    dataReceived = await Promise.all(data)
+      .then(responseData =>
+        Promise.all(
+          responseData.map(responseDataItem => {
+            if (responseDataItem.ok) {
+              return responseDataItem.json();
+            } else {
+              throw Error(responseData);
+            }
+          }),
+        ).catch(err => error),
+      )
+      .catch(err => error);
+  return dataReceived.responseOk !== undefined
+    ? dataReceived
+    : { data: dataReceived, responseOk: true };
 }
 
 function hasNextPage(linksList) {

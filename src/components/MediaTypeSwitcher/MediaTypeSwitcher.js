@@ -29,14 +29,12 @@ export default function MediaTypeSwitcher({ selectedMediaTypes, setSelectedMedia
       <div
         tabIndex="-1"
         id="wrapper"
-        className={
-          focusInsideChild || focusOnSwitcher
-            ? [styles.wrapper, styles.visible].join(' ')
-            : styles.wrapper
-        }
+        className={[styles.wrapper, focusInsideChild || focusOnSwitcher ? styles.visible : ''].join(
+          ' ',
+        )}
       >
         {['image', 'audio', 'video'].map((mediaType, i) => (
-          <div key={i} className={styles.inputWrapper} id="inputWrapper">
+          <div key={mediaType} className={styles.inputWrapper} id="inputWrapper">
             <input
               type="checkbox"
               data-title={mediaType}

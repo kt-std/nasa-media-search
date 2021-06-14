@@ -14,13 +14,16 @@ import {
   isElementInArray,
   keywordIsASingleWord,
 } from '../utils';
+import audio from '/assets/audio.svg';
 
 import styles from '/style.css';
 
 export function searchByTerm(searchInputValue, media, e) {
   const { searchParams, error, data, mediaRequest, filter, sort } = media;
   e.preventDefault();
-  searchParams.setMediaTypes(searchParams.selectedMediaTypes);
+  searchParams.selectedMediaTypes.length
+    ? searchParams.setMediaTypes(searchParams.selectedMediaTypes)
+    : searchParams.setMediaTypes(['image', 'video', 'audio']);
   searchParams.setSearchValue(searchInputValue);
   resetState(data, mediaRequest, sort, filter, error);
   mediaRequest.setIsDataLoading(true);
@@ -32,16 +35,13 @@ export function openHomePage(media, setSearchInputValue, e) {
   mediaRequest.setRequestMade(false);
   searchParams.setSearchValue(null);
   setSearchInputValue('');
-  searchParams.setMediaTypes([]);
-  searchParams.setSelectedMediaTypes([]);
   resetState(data, mediaRequest, sort, filter, error);
   removeClass(`${styles.no_image__background}`, document.body);
 }
 
 export function updateData(dataParams, data, filter, searchParams) {
-  const { filters, totalHits, flattenedData, mediaTypes, noResults } = dataParams;
+  const { filters, totalHits, flattenedData, mediaTypes } = dataParams;
   data.setTotalHits(totalHits);
-  data.setNoResults(noResults);
   data.setFlattenedData(flattenedData);
   filter.setFilters(filters);
 }
@@ -122,13 +122,12 @@ export function removeFilter(data, selectedFilters, filter, e) {
 
 export function resetState(data, mediaRequest, sort, filter, error) {
   data.setTotalHits(null);
-  data.setNoResults(false);
   data.setFilteredData([]);
   data.setFlattenedData([]);
   mediaRequest.setAllRequestsMade(false);
   mediaRequest.setRequestMade(false);
   sort.setIsSortingSet(false);
-  error.setIsError(false);
+  error.setResponseOk(true);
   filter.setSelectedFiltersList([]);
   filter.setFiltersSelected(false);
   filter.setFilters({});
@@ -139,14 +138,11 @@ export function getCardStyling(mediaType, styles) {
 }
 
 export function getBackground(dataItem) {
-  return dataItem.previewImage !== null ? dataItem.previewImage : require('../../assets/audio.svg');
-}
-export function setBackground(url) {
-  return { backgroundImage: `url(${url}` };
+  return dataItem.previewImage !== null ? dataItem.previewImage : audio;
 }
 
-export function changeBackground() {
-  addClass(`${styles.no_image__background}`, document.body);
+export function setBackground(url) {
+  return { backgroundImage: `url(${url}` };
 }
 
 export function isFilterSelected(filtersSelected, filterName, categorie) {
@@ -171,11 +167,11 @@ export function sortByDirection(data, option, direction) {
   data.sort((a, b) => {
     const isA = typeof a[option] !== 'undefined',
       isB = typeof b[option] !== 'undefined';
-    if (direction === 'ascending') {
-      return isB - isA || (isA === true && a[option] - b[option]) || 0;
-    } else {
-      return isB - isA || (isA === true && b[option] - a[option]) || 0;
-    }
+    return (
+      isB - isA ||
+      (direction === 'ascending' ? isA && a[option] - b[option] : isA && b[option] - a[option]) ||
+      0
+    );
   });
 }
 
@@ -421,9 +417,4 @@ export function showDescriptionOnKeyPress(e, style, descriptionId) {
     e.preventDefault();
     showDescription(style, descriptionId, e);
   }
-}
-
-export function setOpositeState(value, setCB) {
-  const valueCopy = value;
-  setCB(!valueCopy);
 }

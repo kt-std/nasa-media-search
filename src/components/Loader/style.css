@@ -28,7 +28,7 @@
   width: 200px;
   height: 200px;
   order: 2;
-  background: center url(../../../assets/houston.svg) no-repeat;
+  background: center url(../../assets/houston.svg) no-repeat;
   background-size: contain;
 }
 .error:after {
