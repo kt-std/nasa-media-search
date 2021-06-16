@@ -88,24 +88,22 @@ function getMetadata(flattenedData, collectionData) {
   return getAllPromisesData(metadataFetchedLinks);
 }
 
-async function getAllPromisesData(data) {
-  const error = { responseOk: false, errorText: 'Try to reload the page' },
-    dataReceived = await Promise.all(data)
-      .then(responseData =>
-        Promise.all(
-          responseData.map(responseDataItem => {
-            if (responseDataItem.ok) {
-              return responseDataItem.json();
-            } else {
-              throw Error(responseData);
-            }
-          }),
-        ).catch(err => error),
-      )
-      .catch(err => error);
-  return dataReceived.responseOk !== undefined
-    ? dataReceived
-    : { data: dataReceived, responseOk: true };
+function getAllPromisesData(data) {
+  const error = { responseOk: false, errorText: 'Try to reload the page' };
+  return Promise.all(data)
+    .then(responseData =>
+      Promise.all(
+        responseData.map(responseDataItem => {
+          if (responseDataItem.ok) {
+            return responseDataItem.json();
+          } else {
+            throw Error(responseData);
+          }
+        }),
+      ),
+    )
+    .then(data => ({ data: data, responseOk: true }))
+    .catch(err => error);
 }
 
 function hasNextPage(linksList) {
